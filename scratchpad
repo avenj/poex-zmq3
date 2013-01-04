@@ -1,0 +1,50 @@
+TODO
+ Error handling / dispatch?
+
+
+ZMQ3.pm
+ - Provide frontend methods & handle emit() for everyone?
+
+ZMQ3/Role/ZMQSockets.pm
+ - Consumed by Connectors and Listeners
+ - Provide method to create a socket and ->select() the FD
+   from zmq_getsockopt
+ - Track sockets and provide method(s) to close / clear them
+ - Provide io-handling event dispatching message back
+   POE or method dispatch..?
+   Needs to be deserialized/handled in ->emitter ?
+
+ZMQ3/Connector.pm
+ - Provide base class for a Connector
+ - Provide factory method to spawn certain types of Connectors
+ZMQ3/Connector/<TYPE> ?
+  Connector/Req.pm
+   - REQ client
+     See Listener/Rep
+  Connector/Sub.pm
+   - SUB client
+
+ZMQ3/Listener.pm
+ - Base class for a Listener
+ - Factory method to spawn specific types
+ZMQ3/Listener/<TYPE>
+  Listener/Rep.pm
+   - REP server
+     Valid combinations:
+      REQ to REP
+      REQ to ROUTER
+      DEALER to REP
+      DEALER to ROUTER
+      DEALER to DEALER
+      ROUTER to ROUTER
+     A DEALER is an async REQ socket
+      (has to read/write envelopes)
+     A ROUTER is an async REP socket
+      (has to manage identities)
+  Listener/Rep/Broker.pm
+
+  Listener/Pub.pm
+   - PUB server
+  Listener/Pub/Proxy.pm
+   - XPUB/XSUB Proxy server
+
