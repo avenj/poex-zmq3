@@ -16,7 +16,7 @@ use namespace::clean;
 
 with 'MooX::Role::POE::Emitter';
 
-has _ctxt => (
+has context => (
   lazy      => 1,
   is        => 'ro',
   writer    => '_set_ctxt',
@@ -27,30 +27,11 @@ has _ctxt => (
 sub _build_ctxt {  zmq_init  }
 
 
-has filter => (
-  ## FIXME optional serialize/deserialize methods
-  ##  instead of a POE::Filter ... ?
-  ##  Filter::Reference is probably too much overhead
-  ##  we already have data sizing via zmq
-  lazy      => 1,
-  is        => 'ro',
-  writer    => 'set_filter',
-  clearer   => 'clear_filter',
-  predicate => 'has_filter',
-  default   => sub { POE::Filter::Reference->new }
-);
-
-
 has _listeners => (
 
 );
 sub _listener_create {
-  my ($self) = shift;
-  POEx::ZMQ3::Listener->new(
-    emitter => $self,
-    context => $self->_ctxt,
-    @_
-  )
+
 }
 sub _listener_add {
 
@@ -63,11 +44,7 @@ has _connectors => (
 
 );
 sub _connector_create {
-  my $self = shift;
-  POEx::ZMQ3::Connector->new(
-    emitter => $self,
-    context => $self->_ctxt,
-  )
+
 }
 sub _connector_add {
 
