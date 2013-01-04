@@ -21,18 +21,7 @@ has _ctxt => (
   init_arg => 'context',
 );
 
-
-has addr => (
-
-);
-
-has protocol => (
-
-);
-
-has port => (
-
-);
+## FIXME a Listener's socket can have more than one endpoint
 
 
 sub start {

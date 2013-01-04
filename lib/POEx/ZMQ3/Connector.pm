@@ -22,17 +22,7 @@ has _ctxt => (
 );
 
 
-has addr => (
-
-);
-
-has protocol => (
-
-);
-
-has port => (
-
-);
+## FIXME
 
 
 sub start {
