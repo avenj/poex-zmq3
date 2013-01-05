@@ -47,8 +47,10 @@ sub _create_zmq_socket_sess {
   my $sess = POE::Session->create(
     object_states => [
       $self => {
-        _start      => '_start',
-        zsock_ready => '_zsock_ready',
+        _start         => '_start',
+        zsock_ready    => '_zsock_ready',
+        zsock_handle_socket => '_zsock_handle_socket',
+        zsock_giveup_socket => '_zsock_giveup_socket',
       },
     ],
   );
@@ -70,14 +72,15 @@ sub create_zmq_socket {
 
   my $zsock = zmq_socket( $self->context, $type )
     or confess "zmq_socket failed: $!";
+  my $fh = zmq_getsockopt( $zsock, ZMQ_FD )
+    or confess "zmq_getsockopt failed: $!";
+  $self->_zmqsockets->{$alias}->{zsock}  = $zsock;
+  $self->_zmqsockets->{$alias}->{handle} = $fh;
 
-  $self->_zmqsockets->{$alias} = $zsock;
-  $poe_kernel->select_read( $zsock,
-    'zsock_ready',
+  $poe_kernel->call( $self->_zsock_sess_id, 
+    'zsock_handle_socket',
     $alias
   );
-
-  ## FIXME should we be trying an initial read ?
 
   $zsock
 }
@@ -94,6 +97,8 @@ sub bind_zmq_socket {
     confess "zmq_bind failed: $!"
   }
 
+  ## FIXME should we try an initial read or will select do the right thing?
+
   $self
 }
 
@@ -106,13 +111,19 @@ sub clear_zmq_socket {
     return
   }
 
-  ## FIXME zmq_close before or after ?
-  $poe_kernel->select_read($zsock);
+  $poe_kernel->call( $self->_zsock_sess_id,
+    'zsock_giveup_socket',
+    $alias
+  );
+
+  delete $self->_zmqsockets->{$alias};
+  zmq_close($zsock);
+  undef $zsock;
 
   ## FIXME not required but document:
   $self->zmq_socket_cleared($alias) if $self->can('zmq_socket_cleared');
-
-  delete $self->_zmqsockets->{$alias}
+  
+  $alias
 }
 
 sub clear_all_zmq_sockets {
@@ -125,17 +136,42 @@ sub clear_all_zmq_sockets {
 sub get_zmq_socket {
   my ($self, $alias) = @_;
   confess "Expected an alias" unless defined $alias;
-  $self->_zmqsockets->{$alias}
+  $self->_zmqsockets->{$alias}->{zsock}
 }
 
 sub write_zmq_socket {
   my ($self, $alias, $data) = @_;
   my $zsock = $self->get_zmq_socket($alias);
-  zmq_send( $zsock, zmq_msg_data($data) )
+  ## _sendmsg creates an appropriate obj if not given one:
+  if ( zmq_sendmsg( $zsock, $data ) == -1 ) {
+    confess "zmq_sendmsg failed: $!"
+  }
+  $self
 }
 
 
 ### POE
+sub _zsock_handle_socket {
+  my ($kernel, $self)  = @_[KERNEL, OBJECT];
+  my $alias  = $_[ARG0];
+
+  my $ref    = $self->_zmqsockets->{$alias} || return;
+  my $handle = $ref->{handle};
+
+  $poe_kernel->select_read( $handle,
+    'zsock_ready',
+    $alias
+  );
+}
+
+sub _zsock_giveup_socket {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my $alias = $_[ARG0];
+  my $ref   = $self->_zmqsockets->{$alias} || return;
+  my $handle = $ref->{handle};
+  $kernel->select_read( $handle );
+}
+
 sub _zsock_ready {
   my ($kernel, $self)         = @_[KERNEL, OBJECT];
   my ($zsock, $mode, $alias) = @_[ARG0 .. $#_];
@@ -144,7 +180,7 @@ sub _zsock_ready {
   if (my $msg = zmq_recvmsg( $zsock, ZMQ_RCVMORE )) {
     $self->zmq_message_ready( $alias, $msg );
   }
-
+  ## FIXME handle err ?
 }
 
 
