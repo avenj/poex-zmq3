@@ -24,7 +24,7 @@ sub start {
   }
 
   ## Subscribe to all by default:
-  $self->set_zmq_sockopt( ZALIAS, ZMQ_SUBSCRIBE );
+  $self->set_zmq_sockopt( ZALIAS, ZMQ_SUBSCRIBE, '' );
 
   $self
 }
