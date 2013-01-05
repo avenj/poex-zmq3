@@ -9,16 +9,27 @@ use IO::File;
 
 use POE;
 
+use Scalar::Util 'weaken';
+
 use ZMQ::LibZMQ3;
 use ZMQ::Constants ':all';
-
 
 use namespace::clean;
 
 requires qw/
   zmq_message_ready
-  context
 /;
+
+has 'context' => (
+  ## These can/should be shared.
+  ## ... so long as you reset on fork
+  lazy    => 1,
+  is      => 'ro',
+  writer  => '_set_context',
+  default => sub {
+    zmq_init or confess "zmq_init failed: $!" 
+  },
+);
 
 has '_zmq_sockets' => (
   ## HashRef mapping aliases to ZMQ sockets

@@ -5,8 +5,6 @@ use strict; use warnings qw/FATAL all/;
 use ZMQ::Constants ':all';
 use ZMQ::LibZMQ3;
 
-my $ctxt = zmq_init or die $!;
-
 use POE;
 
 my $mcount = 500;
@@ -28,8 +26,6 @@ my $port = empty_port;
   use Moo;
   use ZMQ::Constants ':all';
 
-  sub context { $ctxt }
-  
   with 'POEx::ZMQ3::Role::ZMQSockets';
 
   sub start {
@@ -62,8 +58,6 @@ pass "Server created";
   use strict; use warnings qw/FATAL all/;
   use Moo;
   use ZMQ::Constants ':all';
-
-  sub context { $ctxt }
 
   with 'POEx::ZMQ3::Role::ZMQSockets';
 
