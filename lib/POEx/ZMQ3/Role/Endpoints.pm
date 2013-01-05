@@ -15,17 +15,28 @@ has '_zmq_targets' => (
   default => sub { +{} },
 );
 
+
+after clear_zmq_socket => sub {
+  my ($self, $alias) = @_;
+  
+  for my $endpoint ($self->list_endpoints) {
+    delete $self->_zmq_endpoints->{$endpoint}
+      if $self->_zmq_endpoints->{$endpoint} eq $alias
+  }
+
+  for my $target ($self->list_target_endpoints) {
+    delete $self->_zmq_targets->{$target}
+      if $self->_zmq_targets->{$target} eq $alias
+  }
+};
+
+
 sub add_endpoint {
   my ($self, $alias, $endpoint) = @_;
   confess "Expected an alias and endpoint" unless $endpoint;
   $self->bind_zmq_socket( $alias, $endpoint );
   $self->_zmq_endpoints->{$endpoint} = $alias;
   $self
-}
-
-sub del_endpoint {
-  my ($self, $endpoint) = @_;
-  ## FIXME uh, can we 'unbind' ?
 }
 
 sub list_endpoints {
@@ -91,7 +102,29 @@ POEx::ZMQ3::Role::Endpoints - Add and track ZMQ targets and endpoints
 A L<Moo::Role> that adds ZeroMQ endpoint management methods to
 L<POEx::ZMQ3::Role::Sockets>.
 
-FIXME
+=head2 add_endpoint
+
+  $self->add_endpoint( $alias, $endpoint );
+
+Adds and calls B<zmq_bind> for a specified endpoint.
+
+=head2 list_endpoints
+
+  my @endpoints = $self->list_endpoints;
+
+List all currently known bound endpoints.
+
+=head2 add_target_endpoint
+
+  $self->add_target_endpoint( $alias, $target );
+
+Adds and calls B<zmq_connect> for a specified target.
+
+=head2 list_target_endpoints
+
+  my @connected = $self->list_target_endpoints;
+
+Lists all currently known target endpoints.
 
 =head1 AUTHOR
 
