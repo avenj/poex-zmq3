@@ -18,16 +18,8 @@ use namespace::clean;
 
 requires 'zmq_message_ready';
 
-has 'context' => (
-  ## These can/should be shared.
-  ## ... so long as you reset on fork
-  lazy    => 1,
-  is      => 'ro',
-  writer  => '_set_context',
-  default => sub {
-    zmq_init or confess "zmq_init failed: $!" 
-  },
-);
+use POEx::ZMQ3::Context;
+sub context { POEx::ZMQ3::Context->new }
 
 has '_zmq_sockets' => (
   ## HashRef mapping aliases to ZMQ sockets
@@ -327,6 +319,7 @@ in any forked copies.
 
 Creates (and begins watching) a ZeroMQ socket.
 Expects an (arbitrary) alias and a valid L<ZMQ::Constants> socket type constant.
+
 See the man page for B<zmq_socket> for details.
 
 If a L<POE::Session> to manage ZMQ sockets did not previously exist, one is
