@@ -1,4 +1,5 @@
 package POEx::ZMQ3::Role::ZMQSockets;
+our $VERSION = '0.00_01';
 
 use Carp;
 use Moo::Role;
@@ -69,15 +70,20 @@ sub create_zmq_socket {
 
   $self->_create_zmq_socket_sess;
 
+  confess "Alias $alias exists; clear it first"
+    if $self->get_zmq_socket($alias);
+
   my $zsock = zmq_socket( $self->context, $type )
     or confess "zmq_socket failed: $!";
   my $fd = zmq_getsockopt( $zsock, ZMQ_FD )
     or confess "zmq_getsockopt failed: $!";
   my $fh = IO::File->new("<&=$fd")
     or confess "failed dup in socket creation: $!";
-  $self->_zmq_sockets->{$alias}->{zsock}  = $zsock;
-  $self->_zmq_sockets->{$alias}->{handle} = $fh;
-  $self->_zmq_sockets->{$alias}->{fd}     = $fd;
+  $self->_zmq_sockets->{$alias} = +{
+    zsock  => $zsock,
+    handle => $fh,
+    fd     => $fd,
+  };
 
   $poe_kernel->call( $self->_zmq_zsock_sess, 
     'zsock_handle_socket',

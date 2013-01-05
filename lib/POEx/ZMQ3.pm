@@ -1,4 +1,5 @@
 package POEx::ZMQ3;
+our $VERSION = '0.00_01';
 
 use Carp;
 use ZMQ::Constants ':all';
