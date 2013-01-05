@@ -10,9 +10,6 @@ use ZMQ::Constants
 
 sub ZALIAS () { 'sub' }
 
-use namespace::clean;
-
-
 with 'POEx::ZMQ3::Role::Emitter';
 with 'POEx::ZMQ3::Role::Endpoints';
 
@@ -105,6 +102,9 @@ POEx::ZMQ3::Subscriber - A SUB-type ZeroMQ socket
 A lightweight ZeroMQ subscriber-type socket using
 L<POEx::ZMQ3::Role::Endpoints> and L<MooX::Role::POE::Emitter> (see their
 respective documentation for relevant methods).
+
+This is a simple subscriber; it indiscriminately receives all published
+messages without filtering.
 
 =head2 Methods
 

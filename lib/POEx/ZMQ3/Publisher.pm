@@ -9,10 +9,6 @@ use ZMQ::Constants
 
 sub ZALIAS () { 'pub' }
 
-
-use namespace::clean;
-
-
 with 'POEx::ZMQ3::Role::Emitter';
 with 'POEx::ZMQ3::Role::Endpoints';
 
@@ -20,12 +16,8 @@ with 'POEx::ZMQ3::Role::Endpoints';
 sub start {
   my ($self, @endpoints) = @_;
   $self->_start_emitter;
-
   $self->create_zmq_socket( ZALIAS, ZMQ_PUB );
-  for my $endpoint (@endpoints) {
-    $self->add_endpoint( ZALIAS, $endpoint );
-  }
-
+  $self->add_endpoint( ZALIAS, $_ ) for @endpoints;
   $self
 }
 

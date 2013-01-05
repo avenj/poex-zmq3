@@ -7,8 +7,6 @@ use ZMQ::Constants 'ZMQ_REQ';
 
 sub ZALIAS () { 'req' }
 
-use namespace::clean;
-
 with 'POEx::ZMQ3::Role::Emitter';
 with 'POEx::ZMQ3::Role::Endpoints';
 
@@ -41,7 +39,7 @@ sub request {
 
 sub zmq_message_ready {
   my ($self, $alias, $zmsg, $data) = @_;
-  $self->emit( 'got_reply', $data)
+  $self->emit( 'got_reply', $data )
 }
 
 1;
@@ -129,7 +127,7 @@ Emitted when we are initialized; $_[ARG0] is the target REP server's address.
 
 =head3 zeromq_got_reply
 
-Emitted when we receive a reply to a request.
+Emitted when we receive a reply to a request; $_[ARG0] is the raw data.
 
 =head1 SEE ALSO
 
