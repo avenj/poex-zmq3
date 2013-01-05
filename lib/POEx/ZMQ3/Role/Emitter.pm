@@ -12,13 +12,15 @@ requires 'start', 'stop';
 around '_start_emitter' => sub {
   my ($orig, $self) = splice @_, 0, 2;
   $self->set_event_prefix( 'zeromq_' ) unless $self->has_event_prefix;
-  $self->set_pluggable_type_prefixes(
+  $self->set_pluggable_type_prefixes(+{
     PROCESS => 'P_Zmq',
     NOTIFY  => 'Zmq',
-  ) unless $self->has_pluggable_type_prefixes;
+  }) unless $self->has_pluggable_type_prefixes;
 
   $self->$orig(@_);
 };
+
+sub _stop_emitter { shift->_shutdown_emitter(@_) }
 
 
 1;

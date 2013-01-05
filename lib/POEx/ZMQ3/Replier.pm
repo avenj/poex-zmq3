@@ -26,13 +26,13 @@ sub stop {
   my ($self) = @_;
   $self->emit( 'stopped' );
   $self->clear_zmq_socket( ZALIAS );
-  $self->_stop_emitter;
+  $self->_shutdown_emitter;
   $self
 }
 
 sub reply {
   my ($self, $data) = @_;
-  $self->write_zmq_socket( $data );
+  $self->write_zmq_socket( ZALIAS, $data );
   $self
 }
 

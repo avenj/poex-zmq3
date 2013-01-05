@@ -1,0 +1,13 @@
+Build.PL
+lib/POEx/ZMQ3.pm
+lib/POEx/ZMQ3/Context.pm
+lib/POEx/ZMQ3/Publisher.pm
+lib/POEx/ZMQ3/Replier.pm
+lib/POEx/ZMQ3/Requestor.pm
+lib/POEx/ZMQ3/Role/Emitter.pm
+lib/POEx/ZMQ3/Role/Endpoints.pm
+lib/POEx/ZMQ3/Role/Sockets.pm
+lib/POEx/ZMQ3/Subscriber.pm
+MANIFEST			This list of files
+t/01_role/01_zmqsocks_repreq.t
+TODO

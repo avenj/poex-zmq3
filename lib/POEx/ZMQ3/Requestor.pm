@@ -34,7 +34,7 @@ sub stop {
 
 sub request {
   my ($self, $data) = @_;
-  $self->write_zmq_socket( $data );
+  $self->write_zmq_socket( ZALIAS, $data );
 }
 
 sub zmq_message_ready {

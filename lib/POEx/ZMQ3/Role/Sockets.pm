@@ -158,9 +158,9 @@ sub clear_zmq_socket {
     return
   }
 
-  $self->set_zmq_sockopt($alias, ZMQ_LINGER, 0);
+## Hum. Setting ZMQ_LINGER 0 seems to cause hangs, though it ought not.
+#  $self->set_zmq_sockopt($alias, ZMQ_LINGER, 0);
   zmq_close($zsock);
-  undef $zsock;
 
   $poe_kernel->call( $self->_zmq_zsock_sess,
     'zsock_giveup_socket',

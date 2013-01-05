@@ -54,7 +54,7 @@ sub add_target_endpoint {
 
 sub list_target_endpoints {
   my ($self) = @_;
-  keys %{ $self->_zmq_target_endpoints }
+  keys %{ $self->_zmq_targets }
 }
 
 1;
