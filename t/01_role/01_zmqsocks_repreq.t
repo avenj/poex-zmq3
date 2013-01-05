@@ -4,6 +4,7 @@ use strict; use warnings qw/FATAL all/;
 
 use ZMQ::Constants ':all';
 use ZMQ::LibZMQ3;
+diag "Testing with libzeromq ".ZMQ::LibZMQ3::zmq_version;
 
 use POE;
 
@@ -26,7 +27,7 @@ my $port = empty_port;
   use Moo;
   use ZMQ::Constants ':all';
 
-  with 'POEx::ZMQ3::Role::ZMQSockets';
+  with 'POEx::ZMQ3::Role::Sockets';
 
   sub start {
     my ($self) = @_;
@@ -59,7 +60,7 @@ pass "Server created";
   use Moo;
   use ZMQ::Constants ':all';
 
-  with 'POEx::ZMQ3::Role::ZMQSockets';
+  with 'POEx::ZMQ3::Role::Sockets';
 
   sub start {
     my ($self) = @_;

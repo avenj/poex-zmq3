@@ -1,4 +1,4 @@
-package POEx::ZMQ3::Role::ZMQSockets;
+package POEx::ZMQ3::Role::Sockets;
 our $VERSION = '0.00_01';
 
 use 5.10.1;
@@ -134,6 +134,7 @@ sub clear_zmq_socket {
     return
   }
 
+  $self->set_zmq_sockopt($alias, ZMQ_LINGER, 0);
   zmq_close($zsock);
   undef $zsock;
 
@@ -162,6 +163,19 @@ sub get_zmq_socket {
   my ($self, $alias) = @_;
   confess "Expected an alias" unless defined $alias;
   ( $self->_zmq_sockets->{$alias} // return )->{zsock}
+}
+
+sub set_zmq_sockopt {
+  my ($self, $alias) = splice @_, 0, 2;
+  confess "Expected an alias and flag(s) to feed zmq_setsockopt"
+    unless @_;
+
+  my $zsock = $self->get_zmq_socket($alias)
+    || confess "Cannot set_zmq_sockopt; no such alias $alias";
+
+  if ( zmq_setsockopt( $zsock, @_ ) == -1 ) {
+    confess "zmq_setsockopt failed: $!"
+  }
 }
 
 sub write_zmq_socket {
@@ -217,6 +231,9 @@ sub _zsock_ready {
 
   my $ref   = $self->_zmq_sockets->{$alias} // return;
 
+  ## FIXME
+  ## Hum. multipart?
+
   ## Dispatch to consumer's handler.
   while (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
     $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
@@ -232,7 +249,7 @@ sub _zsock_start { 1 }
 
 =head1 NAME
 
-POEx::ZMQ3::Role::ZMQSockets - Add ZeroMQ sockets to a class
+POEx::ZMQ3::Role::Sockets - Add ZeroMQ sockets to a class
 
 =head1 SYNOPSIS
 
@@ -242,7 +259,7 @@ POEx::ZMQ3::Role::ZMQSockets - Add ZeroMQ sockets to a class
   use Moo;
   use ZMQ::Constants ':all';
 
-  with 'POEx::ZMQ3::Role::ZMQSockets';
+  with 'POEx::ZMQ3::Role::Sockets';
 
   sub start {
     my ($self) = @_;
@@ -372,6 +389,16 @@ Shut down all sockets.
 Retrieve the actual ZeroMQ socket object for the given alias.
 
 Only useful for darker forms of magic.
+
+
+=head3 set_zmq_sockopt
+
+  $self->set_zmq_sockopt( $zsock_alias, @params );
+
+Calls B<zmq_setsockopt> to set options on the specified ZMQ socket.
+
+Most options should be set between socket creation and any initial
+L</connect_zmq_socket> or L</bind_zmq_socket> call. See the man page.
 
 =head3 write_zmq_socket
 

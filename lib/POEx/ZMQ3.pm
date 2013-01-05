@@ -32,12 +32,16 @@ FIXME
 
 =head2 Classes
 
-FIXME
+POEx::ZMQ3::Server # FIXME return appropriate subclass?
+
+POEx::ZMQ3::Client # FIXME similar to above?
 
 =head2 Roles
 
-L<POEx::ZMQ3::Role::ZMQSockets> provides the asynchronous backend that 
-bridges L<POE> and L<ZMQ::LibZMQ3>.
+L<POEx::ZMQ3::Role::Sockets> is a fast asynchronous L<POE> interface 
+to L<ZMQ::LibZMQ3> sockets.
+
+L<MooX::Role::POE::Emitter> provides L<POE> event emitter functionality.
 
 =head1 SEE ALSO
 

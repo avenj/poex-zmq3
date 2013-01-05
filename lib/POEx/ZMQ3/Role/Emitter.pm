@@ -1,4 +1,4 @@
-package POEx::ZMQ3::Role::ZMQEmitter;
+package POEx::ZMQ3::Role::Emitter;
 
 use Carp;
 use Moo::Role;
@@ -27,14 +27,14 @@ around '_start_emitter' => sub {
 
 =head1 NAME
 
-POEx::ZMQ3::Role::ZMQEmitter - Event emitter for POEx::ZMQ3
+POEx::ZMQ3::Role::Emitter - Event emitter for POEx::ZMQ3
 
 =head1 SYNOPSIS
 
   package MyZMQServer;
   use Moo;
-  with 'POEx::ZMQ3::Role::ZMQEmitter';
-  with 'POEx::ZMQ3::Role::ZMQSockets';
+  with 'POEx::ZMQ3::Role::Emitter';
+  with 'POEx::ZMQ3::Role::Sockets';
 
   sub start {
     my ($self) = @_;
