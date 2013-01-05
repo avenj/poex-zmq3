@@ -5,15 +5,18 @@ use strict; use warnings qw/FATAL all/;
 use ZMQ::Constants ':all';
 use ZMQ::LibZMQ3;
 
-my $ctxt = zmq_init;
+my $ctxt = zmq_init or die $!;
 
 use POE;
 
-my $expected = {
-  message_ready => 100,
-  correct_data  => 100,
-  client_message_ready => 100,
-  client_correct_data  => 100,
+my $mcount = 500;
+my $expected = +{
+  map {; $_ => $mcount } qw/
+    message_ready
+    correct_data
+    client_message_ready
+    client_correct_data
+  /
 };
 my $got = {};
 
@@ -84,7 +87,7 @@ pass "Server created";
     my ($self, $alias, $msg, $data) = @_;
     $got->{client_message_ready}++;
     $got->{client_correct_data}++ if $data eq 'this is not a reply';
-    if (($got->{client_message_ready}||=0) == 100) {
+    if (($got->{client_message_ready}||=0) == $mcount) {
       $self->stop;
       $server->stop;
       return
@@ -109,6 +112,6 @@ POE::Session->create(
 
 $poe_kernel->run;
 
-is_deeply( $got, $expected, 'REQ/REP client/server look ok' );
+is_deeply( $got, $expected, 'REQ/REP exchanged 500 messages' );
 
 done_testing;

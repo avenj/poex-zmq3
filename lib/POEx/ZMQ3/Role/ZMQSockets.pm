@@ -129,6 +129,7 @@ sub clear_zmq_socket {
   }
 
   zmq_close($zsock);
+  undef $zsock;
 
   $poe_kernel->call( $self->_zsock_sess_id,
     'zsock_giveup_socket',
@@ -136,7 +137,6 @@ sub clear_zmq_socket {
   );
 
   delete $self->_zmqsockets->{$alias};
-  undef $zsock;
 
   ## FIXME not required but document:
   $self->zmq_socket_cleared($alias) if $self->can('zmq_socket_cleared');
@@ -208,7 +208,7 @@ sub _zsock_ready {
   my ($kernel, $self)         = @_[KERNEL, OBJECT];
   my ($handle, $mode, $alias)  = @_[ARG0 .. $#_];
 
-  my $zsock = $self->get_zmq_socket($alias);
+  my $zsock = $self->get_zmq_socket($alias) || return;
 
   ## Dispatch to consumer's handler.
   while (my $msg = zmq_recvmsg( $zsock, ZMQ_RCVMORE )) {
