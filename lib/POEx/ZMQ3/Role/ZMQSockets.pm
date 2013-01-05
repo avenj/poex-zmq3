@@ -27,13 +27,11 @@ sub context { POEx::ZMQ3::Context->new }
 
 has '_zmq_sockets' => (
   ## HashRef mapping aliases to ZMQ sockets
-  lazy  => 1,
-  is    => 'ro',
+  is      => 'ro',
   default => sub { +{} },
 );
 
 has '_zmq_zsock_sess' => (
-  lazy    => 1,
   is      => 'ro',
   writer  => '_set_zmq_zsock_sess',
   default => sub { undef },

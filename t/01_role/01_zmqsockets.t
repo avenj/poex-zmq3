@@ -7,7 +7,7 @@ use ZMQ::LibZMQ3;
 
 use POE;
 
-my $mcount = 500;
+my $mcount = 2000;
 my $expected = +{
   map {; $_ => $mcount } qw/
     message_ready
@@ -106,6 +106,6 @@ POE::Session->create(
 
 $poe_kernel->run;
 
-is_deeply( $got, $expected, 'REQ/REP exchanged 500 messages' );
+is_deeply( $got, $expected, "REQ/REP exchanged $mcount messages" );
 
 done_testing;

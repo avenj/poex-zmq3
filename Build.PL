@@ -83,6 +83,10 @@ my $build = $class->new(
     'Carp'     => 0,
     'Storable' => 0,
 
+    ## Faster simple accessors.
+    ## You need a C compiler for ZMQ, anyway:
+    'Class::XSAccessor'         => 0,
+
     'strictures'                => 1,
     'namespace::clean'          => '0.23',
 
