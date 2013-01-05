@@ -4,6 +4,8 @@ use Carp;
 use Moo::Role;
 use strictures 1;
 
+use IO::File;
+
 use POE;
 
 use ZMQ::LibZMQ3;
@@ -47,7 +49,7 @@ sub _create_zmq_socket_sess {
   my $sess = POE::Session->create(
     object_states => [
       $self => {
-        _start         => '_start',
+        _start         => '_zsock_start',
         zsock_ready    => '_zsock_ready',
         zsock_handle_socket => '_zsock_handle_socket',
         zsock_giveup_socket => '_zsock_giveup_socket',
@@ -60,9 +62,6 @@ sub _create_zmq_socket_sess {
   $id
 }
 
-sub _start {}
-
-
 sub create_zmq_socket {
   my ($self, $alias, $type) = @_;
   confess "Expected an alias and ZMQ::Constants socket type constant"
@@ -72,8 +71,10 @@ sub create_zmq_socket {
 
   my $zsock = zmq_socket( $self->context, $type )
     or confess "zmq_socket failed: $!";
-  my $fh = zmq_getsockopt( $zsock, ZMQ_FD )
+  my $fd = zmq_getsockopt( $zsock, ZMQ_FD )
     or confess "zmq_getsockopt failed: $!";
+  my $fh = IO::File->new("<&=$fd")
+    or confess "failed dup in socket creation: $!";
   $self->_zmqsockets->{$alias}->{zsock}  = $zsock;
   $self->_zmqsockets->{$alias}->{handle} = $fh;
 
@@ -93,11 +94,26 @@ sub bind_zmq_socket {
   my $zsock = $self->get_zmq_socket($alias)
     or confess "Cannot bind_zmq_socket, no such alias $alias";
 
-  unless ( zmq_bind($zsock, $endpoint) ) {
+  if ( zmq_bind($zsock, $endpoint) ) {
     confess "zmq_bind failed: $!"
   }
 
   ## FIXME should we try an initial read or will select do the right thing?
+
+  $self
+}
+
+sub connect_zmq_socket {
+  my ($self, $alias, $endpoint) = @_;
+  confess "Expected an alias and a target"
+    unless defined $alias and defined $endpoint;
+
+  my $zsock = $self->get_zmq_socket($alias)
+    or confess "Cannot connect_zmq_socket, no such alias $alias";
+
+  if ( zmq_connect($zsock, $endpoint) ) {
+    confess "zmq_connect failed: $!"
+  }
 
   $self
 }
@@ -123,7 +139,7 @@ sub clear_zmq_socket {
   ## FIXME not required but document:
   $self->zmq_socket_cleared($alias) if $self->can('zmq_socket_cleared');
   
-  $alias
+  $self
 }
 
 sub clear_all_zmq_sockets {
@@ -131,6 +147,7 @@ sub clear_all_zmq_sockets {
   for my $alias (keys %{ $self->_zmqsockets }) {
     $self->clear_zmq_socket($alias);
   }
+  $self
 }
 
 sub get_zmq_socket {
@@ -154,14 +171,19 @@ sub write_zmq_socket {
 sub _zsock_handle_socket {
   my ($kernel, $self)  = @_[KERNEL, OBJECT];
   my $alias  = $_[ARG0];
-
   my $ref    = $self->_zmqsockets->{$alias} || return;
-  my $handle = $ref->{handle};
 
-  $poe_kernel->select_read( $handle,
+  $kernel->select( $ref->{handle},
     'zsock_ready',
+    undef,
+    undef,
     $alias
   );
+
+  ## Maybe ready now?
+  if (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
+    $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
+  }
 }
 
 sub _zsock_giveup_socket {
@@ -169,7 +191,7 @@ sub _zsock_giveup_socket {
   my $alias = $_[ARG0];
   my $ref   = $self->_zmqsockets->{$alias} || return;
   my $handle = $ref->{handle};
-  $kernel->select_read( $handle );
+  $kernel->select( $handle );
 }
 
 sub _zsock_ready {
@@ -178,11 +200,12 @@ sub _zsock_ready {
 
   ## Dispatch to consumer's handler.
   if (my $msg = zmq_recvmsg( $zsock, ZMQ_RCVMORE )) {
-    $self->zmq_message_ready( $alias, $msg );
+    $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
   }
   ## FIXME handle err ?
 }
 
+sub _zsock_start { 1 }
 
 
 1;
