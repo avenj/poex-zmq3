@@ -162,7 +162,7 @@ sub write_zmq_socket {
   my $zsock = $self->get_zmq_socket($alias);
   ## _sendmsg creates an appropriate obj if not given one:
   if ( zmq_sendmsg( $zsock, $data ) == -1 ) {
-    confess "zmq_sendmsg failed: $!"
+    confess "zmq_sendmsg failed: $!";
   }
   $self
 }
@@ -181,9 +181,10 @@ sub _zsock_handle_socket {
     $alias
   );
 
-  ## Maybe ready now?
-  if (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
-    $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
+  ## See if anything was prebuffered.
+  while (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
+    my $data = zmq_msg_data($msg);
+    $self->zmq_message_ready( $alias, $msg, $data );
   }
 }
 
@@ -202,10 +203,10 @@ sub _zsock_ready {
   my $zsock = $self->get_zmq_socket($alias);
 
   ## Dispatch to consumer's handler.
-  if (my $msg = zmq_recvmsg( $zsock, ZMQ_RCVMORE )) {
-    $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
+  while (my $msg = zmq_recvmsg( $zsock, ZMQ_RCVMORE )) {
+    my $data = zmq_msg_data($msg); 
+    $self->zmq_message_ready( $alias, $msg, $data );
   }
-  ## FIXME handle err ?
 }
 
 sub _zsock_start { 1 }
