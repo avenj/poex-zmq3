@@ -77,6 +77,7 @@ sub create_zmq_socket {
     or confess "failed dup in socket creation: $!";
   $self->_zmqsockets->{$alias}->{zsock}  = $zsock;
   $self->_zmqsockets->{$alias}->{handle} = $fh;
+  $self->_zmqsockets->{$alias}->{fd}     = $fd;
 
   $poe_kernel->call( $self->_zsock_sess_id, 
     'zsock_handle_socket',
@@ -196,7 +197,9 @@ sub _zsock_giveup_socket {
 
 sub _zsock_ready {
   my ($kernel, $self)         = @_[KERNEL, OBJECT];
-  my ($zsock, $mode, $alias) = @_[ARG0 .. $#_];
+  my ($handle, $mode, $alias)  = @_[ARG0 .. $#_];
+
+  my $zsock = $self->get_zmq_socket($alias);
 
   ## Dispatch to consumer's handler.
   if (my $msg = zmq_recvmsg( $zsock, ZMQ_RCVMORE )) {
