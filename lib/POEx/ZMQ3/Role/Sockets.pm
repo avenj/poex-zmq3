@@ -158,16 +158,19 @@ sub clear_zmq_socket {
     return
   }
 
-## Hum. Setting ZMQ_LINGER 0 seems to cause hangs, though it ought not.
-#  $self->set_zmq_sockopt($alias, ZMQ_LINGER, 0);
+  my $ref = delete $self->_zmq_sockets->{$alias};
+  delete $ref->{$alias}->{zsock};
+
+  ## Hum. Setting ZMQ_LINGER 0 seems to cause hangs, though it ought not.
+  #$self->set_zmq_sockopt($alias, ZMQ_LINGER, 0);
   zmq_close($zsock);
 
+  my $handle = $ref->{handle};
   $poe_kernel->call( $self->_zmq_zsock_sess,
     'zsock_giveup_socket',
-    $alias
+    $handle
   );
-
-  delete $self->_zmq_sockets->{$alias};
+  undef $handle;
 
   $self->zmq_socket_cleared($alias) if $self->can('zmq_socket_cleared');
   
@@ -242,16 +245,12 @@ sub _zsock_handle_socket {
 
 sub _zsock_giveup_socket {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  my $alias  = $_[ARG0];
-
-  my $ref    = $self->_zmq_sockets->{$alias} // return;
-  my $handle = $ref->{handle};
+  my $handle = $_[ARG0];
   $kernel->select( $handle );
 }
 
 sub _zsock_ready {
   my ($self, $alias) = @_[OBJECT, ARG2];
-
   my $ref   = $self->_zmq_sockets->{$alias} // return;
 
   ## FIXME
