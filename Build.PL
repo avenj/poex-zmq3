@@ -98,7 +98,6 @@ my $build = $class->new(
   },
 
   recommends => {
-    'Class::XSAccessor' => '1.05',
   },
 
   meta_merge => {

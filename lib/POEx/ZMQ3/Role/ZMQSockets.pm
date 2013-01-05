@@ -1,6 +1,7 @@
 package POEx::ZMQ3::Role::ZMQSockets;
 our $VERSION = '0.00_01';
 
+use 5.10.1;
 use Carp;
 use Moo::Role;
 use strictures 1;
@@ -16,18 +17,18 @@ use ZMQ::Constants ':all';
 
 use namespace::clean;
 
+
 requires 'zmq_message_ready';
+
 
 use POEx::ZMQ3::Context;
 sub context { POEx::ZMQ3::Context->new }
+
 
 has '_zmq_sockets' => (
   ## HashRef mapping aliases to ZMQ sockets
   lazy  => 1,
   is    => 'ro',
-  isa   => sub {
-    ref $_[0] eq 'HASH' or confess "$_[0] is not a HASH"
-  },
   default => sub { +{} },
 );
 
@@ -162,7 +163,7 @@ sub clear_all_zmq_sockets {
 sub get_zmq_socket {
   my ($self, $alias) = @_;
   confess "Expected an alias" unless defined $alias;
-  $self->_zmq_sockets->{$alias}->{zsock}
+  ( $self->_zmq_sockets->{$alias} // return )->{zsock}
 }
 
 sub write_zmq_socket {
@@ -187,7 +188,7 @@ sub write_zmq_socket {
 sub _zsock_handle_socket {
   my ($kernel, $self)  = @_[KERNEL, OBJECT];
   my $alias  = $_[ARG0];
-  my $ref    = $self->_zmq_sockets->{$alias} || return;
+  my $ref    = $self->_zmq_sockets->{$alias} // return;
 
   $kernel->select( $ref->{handle},
     'zsock_ready',
@@ -205,17 +206,16 @@ sub _zsock_handle_socket {
 
 sub _zsock_giveup_socket {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  my $alias = $_[ARG0];
-  my $ref   = $self->_zmq_sockets->{$alias} || return;
+  my $alias  = $_[ARG0];
+  my $ref    = $self->_zmq_sockets->{$alias} // return;
   my $handle = $ref->{handle};
   $kernel->select( $handle );
 }
 
 sub _zsock_ready {
-  my ($kernel, $self)         = @_[KERNEL, OBJECT];
-  my ($handle, $mode, $alias)  = @_[ARG0 .. $#_];
-
-  my $zsock = $self->get_zmq_socket($alias) || return;
+  my ($self, $alias) = @_[OBJECT, ARG2];
+  my $ref   = $self->_zmq_sockets->{$alias} // return;
+  my $zsock = $ref->{zsock};
 
   ## Dispatch to consumer's handler.
   while (my $msg = zmq_recvmsg( $zsock, ZMQ_RCVMORE )) {
