@@ -6,26 +6,6 @@ use Moo;
 
 use namespace::clean;
 
-with 'MooX::Role::POE::Emitter';
-
-sub start {
-  my ($self) = @_;
-  $self->set_event_prefix( 'zeromq_' ) unless $self->has_event_prefix;
-  $self->set_pluggable_type_prefixes(
-    PROCESS => 'P',
-    NOTIFY  => 'Zmq',
-  ) unless $self->has_pluggable_type_prefixes;
-  $self->_start_emitter;
-
-  $self
-}
-
-sub stop {
-  my ($self) = @_;
-  $self->_shutdown_emitter;
-}
-
-
 ## FIXME
 
 1;
