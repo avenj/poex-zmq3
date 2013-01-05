@@ -34,9 +34,7 @@ my $port = empty_port;
     $self->create_zmq_socket( 'myServsock',
       ZMQ_REP
     );
-    warn "server create";
     $self->bind_zmq_socket( 'myServsock', 'tcp://127.0.0.1:'.$port );
-    warn "create, bind";
   }
 
   sub stop {
@@ -46,10 +44,8 @@ my $port = empty_port;
 
   sub zmq_message_ready {
     my ($self, $alias, $msg, $data) = @_;
-    warn "server message $data";
     $got->{message_ready}++;
     $got->{correct_data}++ if $data eq 'this is not a message';
-    warn "writing back to client";
     $self->write_zmq_socket( 'myServsock', 'this is not a reply' );
   }
 }
@@ -73,13 +69,10 @@ pass "Server created";
     $self->create_zmq_socket( 'mysock',
       ZMQ_REQ
     );
-    warn "client create";
     $self->connect_zmq_socket( 'mysock',
       'tcp://127.0.0.1:'.$port
     );
-    warn "client connect";
     $self->write_zmq_socket( 'mysock', 'this is not a message' );
-    warn "client create, connect, write";
   }
 
   sub stop {
@@ -89,14 +82,13 @@ pass "Server created";
 
   sub zmq_message_ready {
     my ($self, $alias, $msg, $data) = @_;
-    warn "client message $data";
-    if (($got->{client_message_ready}||=0) == 100) {
-      warn "stopping";
-      $self->stop;
-      $server->stop;
-    }
     $got->{client_message_ready}++;
     $got->{client_correct_data}++ if $data eq 'this is not a reply';
+    if (($got->{client_message_ready}||=0) == 100) {
+      $self->stop;
+      $server->stop;
+      return
+    }
     $self->write_zmq_socket( 'mysock', 'this is not a message' );
   }
 }
@@ -117,6 +109,6 @@ POE::Session->create(
 
 $poe_kernel->run;
 
-is_deeply( $got, $expected );
+is_deeply( $got, $expected, 'REQ/REP client/server look ok' );
 
 done_testing;

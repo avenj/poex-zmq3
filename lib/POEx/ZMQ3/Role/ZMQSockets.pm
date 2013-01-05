@@ -128,13 +128,14 @@ sub clear_zmq_socket {
     return
   }
 
+  zmq_close($zsock);
+
   $poe_kernel->call( $self->_zsock_sess_id,
     'zsock_giveup_socket',
     $alias
   );
 
   delete $self->_zmqsockets->{$alias};
-  zmq_close($zsock);
   undef $zsock;
 
   ## FIXME not required but document:
@@ -159,7 +160,14 @@ sub get_zmq_socket {
 
 sub write_zmq_socket {
   my ($self, $alias, $data) = @_;
+  confess "Expected an alias and data"
+    unless defined $alias and defined $data;
+
   my $zsock = $self->get_zmq_socket($alias);
+  unless ($zsock) {
+    carp "Cannot write_zmq_socket; no such alias $alias";
+    return
+  }
   ## _sendmsg creates an appropriate obj if not given one:
   if ( zmq_sendmsg( $zsock, $data ) == -1 ) {
     confess "zmq_sendmsg failed: $!";
