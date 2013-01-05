@@ -3,7 +3,10 @@ package POEx::ZMQ3::Subscriber;
 use Carp;
 use Moo;
 
-use ZMQ::Constants 'ZMQ_SUB';
+use ZMQ::Constants
+  'ZMQ_SUB',
+  'ZMQ_SUBSCRIBE',
+;
 
 sub ZALIAS () { 'sub' }
 
@@ -22,6 +25,9 @@ sub start {
   for my $target (@targets) {
     $self->add_target_endpoint( ZALIAS, $target );
   }
+
+  ## Subscribe to all by default:
+  $self->set_zmq_sockopt( ZALIAS, ZMQ_SUBSCRIBE );
 
   $self
 }
