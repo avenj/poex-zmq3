@@ -16,9 +16,7 @@ use ZMQ::Constants ':all';
 
 use namespace::clean;
 
-requires qw/
-  zmq_message_ready
-/;
+requires 'zmq_message_ready';
 
 has 'context' => (
   ## These can/should be shared.
