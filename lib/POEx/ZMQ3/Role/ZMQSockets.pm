@@ -167,17 +167,19 @@ sub get_zmq_socket {
 sub write_zmq_socket {
   my ($self, $alias, $data) = @_;
   confess "Expected an alias and data"
-    unless defined $alias and defined $data;
+    unless defined $data;
 
   my $zsock = $self->get_zmq_socket($alias);
-  unless ($zsock) {
+  unless (defined $zsock) {
     carp "Cannot write_zmq_socket; no such alias $alias";
     return
   }
+
   ## _sendmsg creates an appropriate obj if not given one:
   if ( zmq_sendmsg( $zsock, $data ) == -1 ) {
     confess "zmq_sendmsg failed: $!";
   }
+
   $self
 }
 
@@ -197,14 +199,14 @@ sub _zsock_handle_socket {
 
   ## See if anything was prebuffered.
   while (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
-    my $data = zmq_msg_data($msg);
-    $self->zmq_message_ready( $alias, $msg, $data );
+    $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
   }
 }
 
 sub _zsock_giveup_socket {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $alias  = $_[ARG0];
+
   my $ref    = $self->_zmq_sockets->{$alias} // return;
   my $handle = $ref->{handle};
   $kernel->select( $handle );
@@ -212,13 +214,12 @@ sub _zsock_giveup_socket {
 
 sub _zsock_ready {
   my ($self, $alias) = @_[OBJECT, ARG2];
+
   my $ref   = $self->_zmq_sockets->{$alias} // return;
-  my $zsock = $ref->{zsock};
 
   ## Dispatch to consumer's handler.
-  while (my $msg = zmq_recvmsg( $zsock, ZMQ_RCVMORE )) {
-    my $data = zmq_msg_data($msg); 
-    $self->zmq_message_ready( $alias, $msg, $data );
+  while (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
+    $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
   }
 }
 
@@ -264,6 +265,9 @@ POEx::ZMQ3::Role::ZMQSockets - Add ZeroMQ sockets to a class
 
 A L<Moo::Role> giving its consuming class L<POE>-enabled asynchronous
 B<ZeroMQ> sockets via L<ZMQ::LibZMQ3>.
+
+Methods usually die with a stack trace on failure. (See L<Try::Tiny> if this
+is not quite what you wanted.)
 
 See L<http://www.zeromq.org> for more about ZeroMQ.
 
