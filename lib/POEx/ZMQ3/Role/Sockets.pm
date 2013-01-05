@@ -24,6 +24,25 @@ requires 'zmq_message_ready';
 use POEx::ZMQ3::Context;
 sub context { POEx::ZMQ3::Context->new }
 
+my %stringy_types = (
+  REQ => ZMQ_REQ,
+  REP => ZMQ_REP,
+
+  DEALER => ZMQ_DEALER,
+  ROUTER => ZMQ_ROUTER,
+
+  PUB => ZMQ_PUB,
+  SUB => ZMQ_SUB,
+
+  XPUB => ZMQ_XPUB,
+  XSUB => ZMQ_XSUB,
+
+  PUSH => ZMQ_PUSH,
+  PULL => ZMQ_PULL,
+
+  PAIR => ZMQ_PAIR,
+);
+
 
 has '_zmq_sockets' => (
   ## HashRef mapping aliases to ZMQ sockets
@@ -73,12 +92,17 @@ sub create_zmq_socket {
   confess "Alias $alias exists; clear it first"
     if $self->get_zmq_socket($alias);
 
+  $type = $stringy_types{$type} if exists $stringy_types{$type};
+
   my $zsock = zmq_socket( $self->context, $type )
     or confess "zmq_socket failed: $!";
-  my $fd = zmq_getsockopt( $zsock, ZMQ_FD )
+
+  my $fd = zmq_getsockopt( $zsock, ZMQ_FD ) 
     or confess "zmq_getsockopt failed: $!";
+  ## We need an actual handle to feed POE:
   my $fh = IO::File->new("<&=$fd")
     or confess "failed dup in socket creation: $!";
+
   $self->_zmq_sockets->{$alias} = +{
     zsock  => $zsock,
     handle => $fh,
@@ -145,7 +169,6 @@ sub clear_zmq_socket {
 
   delete $self->_zmq_sockets->{$alias};
 
-  ## FIXME not required but document:
   $self->zmq_socket_cleared($alias) if $self->can('zmq_socket_cleared');
   
   $self
@@ -179,7 +202,7 @@ sub set_zmq_sockopt {
 }
 
 sub write_zmq_socket {
-  my ($self, $alias, $data) = @_;
+  my ($self, $alias, $data, @params) = @_;
   confess "Expected an alias and data"
     unless defined $data;
 
@@ -190,7 +213,7 @@ sub write_zmq_socket {
   }
 
   ## _sendmsg creates an appropriate obj if not given one:
-  if ( zmq_sendmsg( $zsock, $data ) == -1 ) {
+  if ( zmq_sendmsg( $zsock, $data, @params ) == -1 ) {
     confess "zmq_sendmsg failed: $!";
   }
 
@@ -232,7 +255,7 @@ sub _zsock_ready {
   my $ref   = $self->_zmq_sockets->{$alias} // return;
 
   ## FIXME
-  ## Hum. multipart?
+  ## Hum. Handle multipart specially?
 
   ## Dispatch to consumer's handler.
   while (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
@@ -309,6 +332,7 @@ handle a received message.
 Arguments are the ZMQ socket's alias, the L<ZMQ::LibZMQ3> message object, 
 and the raw data retrieved from the message object, respectively.
 
+
 =head3 zmq_socket_cleared
 
   sub zmq_socket_cleared {
@@ -339,7 +363,13 @@ in any forked copies.
   my $zsock = $self->create_zmq_socket( $zsock_alias, $zsock_type_constant );
 
 Creates (and begins watching) a ZeroMQ socket.
-Expects an (arbitrary) alias and a valid L<ZMQ::Constants> socket type constant.
+Expects an (arbitrary) alias and a valid L<ZMQ::Constants> socket type
+constant or a string mapping to such:
+
+  ## Same:
+  $self->create_zmq_socket( $zsock_alias, 'PUB' );
+  use ZMQ::Constants ':all';
+  $self->create_zmq_socket( $zsock_alias, ZMQ_PUB );
 
 See the man page for B<zmq_socket> for details.
 
@@ -406,6 +436,7 @@ L</connect_zmq_socket> or L</bind_zmq_socket> call. See the man page.
 
 Write raw data or a ZeroMQ message object to the specified socket alias.
 
+Optional extra params can be passed on to B<zmq_sendmsg>.
 
 =head1 SEE ALSO
 
