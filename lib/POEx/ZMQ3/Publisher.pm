@@ -1,6 +1,5 @@
-package POEx::ZMQ3::Server::Publisher;
+package POEx::ZMQ3::Publisher;
 
-use Carp;
 use Moo;
 
 use ZMQ::Constants

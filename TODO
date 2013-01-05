@@ -1,0 +1,7 @@
+* Incoming multi-part needs a gander
+
+* Unimplemented classes:
+  POEx::ZMQ3::
+    Vent
+    Sink
+    Broker ( Router/Dealer combination(s) )
