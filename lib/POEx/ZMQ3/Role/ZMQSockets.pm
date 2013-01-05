@@ -19,7 +19,7 @@ requires qw/
   context
 /;
 
-has '_zmqsockets' => (
+has '_zmq_sockets' => (
   ## HashRef mapping aliases to ZMQ sockets
   lazy  => 1,
   is    => 'ro',
@@ -29,10 +29,10 @@ has '_zmqsockets' => (
   default => sub { +{} },
 );
 
-has '_zsock_sess_id' => (
+has '_zmq_zsock_sess' => (
   lazy    => 1,
   is      => 'ro',
-  writer  => '_set_zsock_sess_id',
+  writer  => '_set_zmq_zsock_sess',
   default => sub { undef },
 );
 
@@ -42,7 +42,7 @@ sub _create_zmq_socket_sess {
 
   ## Spawn a Session to manage our ZMQ sockets, unless we have one.
 
-  my $maybe_id = $self->_zsock_sess_id;
+  my $maybe_id = $self->_zmq_zsock_sess;
   return $maybe_id if $maybe_id
     and $poe_kernel->alias_resolve($maybe_id);
 
@@ -58,7 +58,7 @@ sub _create_zmq_socket_sess {
   );
 
   my $id = $sess->ID;
-  $self->_set_zsock_sess_id($id);
+  $self->_set_zmq_zsock_sess($id);
   $id
 }
 
@@ -75,11 +75,11 @@ sub create_zmq_socket {
     or confess "zmq_getsockopt failed: $!";
   my $fh = IO::File->new("<&=$fd")
     or confess "failed dup in socket creation: $!";
-  $self->_zmqsockets->{$alias}->{zsock}  = $zsock;
-  $self->_zmqsockets->{$alias}->{handle} = $fh;
-  $self->_zmqsockets->{$alias}->{fd}     = $fd;
+  $self->_zmq_sockets->{$alias}->{zsock}  = $zsock;
+  $self->_zmq_sockets->{$alias}->{handle} = $fh;
+  $self->_zmq_sockets->{$alias}->{fd}     = $fd;
 
-  $poe_kernel->call( $self->_zsock_sess_id, 
+  $poe_kernel->call( $self->_zmq_zsock_sess, 
     'zsock_handle_socket',
     $alias
   );
@@ -131,12 +131,12 @@ sub clear_zmq_socket {
   zmq_close($zsock);
   undef $zsock;
 
-  $poe_kernel->call( $self->_zsock_sess_id,
+  $poe_kernel->call( $self->_zmq_zsock_sess,
     'zsock_giveup_socket',
     $alias
   );
 
-  delete $self->_zmqsockets->{$alias};
+  delete $self->_zmq_sockets->{$alias};
 
   ## FIXME not required but document:
   $self->zmq_socket_cleared($alias) if $self->can('zmq_socket_cleared');
@@ -146,7 +146,7 @@ sub clear_zmq_socket {
 
 sub clear_all_zmq_sockets {
   my ($self) = @_;
-  for my $alias (keys %{ $self->_zmqsockets }) {
+  for my $alias (keys %{ $self->_zmq_sockets }) {
     $self->clear_zmq_socket($alias);
   }
   $self
@@ -155,7 +155,7 @@ sub clear_all_zmq_sockets {
 sub get_zmq_socket {
   my ($self, $alias) = @_;
   confess "Expected an alias" unless defined $alias;
-  $self->_zmqsockets->{$alias}->{zsock}
+  $self->_zmq_sockets->{$alias}->{zsock}
 }
 
 sub write_zmq_socket {
@@ -180,7 +180,7 @@ sub write_zmq_socket {
 sub _zsock_handle_socket {
   my ($kernel, $self)  = @_[KERNEL, OBJECT];
   my $alias  = $_[ARG0];
-  my $ref    = $self->_zmqsockets->{$alias} || return;
+  my $ref    = $self->_zmq_sockets->{$alias} || return;
 
   $kernel->select( $ref->{handle},
     'zsock_ready',
@@ -199,7 +199,7 @@ sub _zsock_handle_socket {
 sub _zsock_giveup_socket {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $alias = $_[ARG0];
-  my $ref   = $self->_zmqsockets->{$alias} || return;
+  my $ref   = $self->_zmq_sockets->{$alias} || return;
   my $handle = $ref->{handle};
   $kernel->select( $handle );
 }
