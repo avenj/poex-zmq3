@@ -22,7 +22,7 @@ sub start {
 
 after add_target_endpoint => sub {
   my ($self, $alias, $target) = @_;
-  $self->emit( 'connected_to', $target );
+  $self->emit_now( 'connected_to', $target );
 };
 
 sub stop {

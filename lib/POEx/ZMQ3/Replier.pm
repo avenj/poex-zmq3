@@ -19,7 +19,7 @@ sub start {
 
 after add_endpoint => sub {
   my ($self, $alias, $endpoint) = @_;
-  $self->emit( 'replying_on', $endpoint );
+  $self->emit_now( 'replying_on', $endpoint );
 };
 
 sub stop {

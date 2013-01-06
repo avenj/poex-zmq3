@@ -492,6 +492,13 @@ Write raw data or a ZeroMQ message object to the specified socket alias.
 
 Optional extra params can be passed on to B<zmq_sendmsg>.
 
+Data is (attempted to be) queued with ZeroMQ immediately.
+
+=head3 write_zmq_socket_later
+
+Takes the same parameters as L</write_zmq_socket>, but yields to L<POE> prior
+to sending data to the ZeroMQ socket.
+
 =head1 SEE ALSO
 
 L<ZMQ::LibZMQ3>

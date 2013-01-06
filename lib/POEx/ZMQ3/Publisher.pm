@@ -36,7 +36,7 @@ sub stop {
 
 sub publish {
   my ($self, @data) = @_;
-  $self->yield(sub { $self->write_zmq_socket( ZALIAS, $_ ) for @data });
+  $self->write_zmq_socket_later( ZALIAS, $_ ) for @data;
   $self
 }
 
