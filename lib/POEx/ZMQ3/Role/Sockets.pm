@@ -256,11 +256,14 @@ sub _zsock_ready {
   my ($self, $alias) = @_[OBJECT, ARG2];
   my $ref   = $self->_zmq_sockets->{$alias} // return;
 
+  return if exists $ref->{closing};
+
   ## FIXME
   ## Hum. Handle multipart specially?
 
   ## Dispatch to consumer's handler.
   while (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
+    return if exists $ref->{closing};
     $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
   }
 }
