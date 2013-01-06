@@ -1,5 +1,5 @@
 package POEx::ZMQ3::Role::Sockets;
-our $VERSION = '0.00_01';
+our $VERSION = '0.00_02';
 
 use 5.10.1;
 use Carp;
@@ -349,6 +349,8 @@ See L<http://www.zeromq.org> for more about ZeroMQ.
 
 This module has been tested against B< zeromq-3.2.2 > and 
 B< ZMQ::LibZMQ3-1.03 >.
+
+
 =head2 Overrides
 
 These methods should be overriden in your consuming class:
