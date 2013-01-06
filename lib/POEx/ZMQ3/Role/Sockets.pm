@@ -270,6 +270,7 @@ sub _zsock_deselect {
   my $alias = $_[ARG0];
 
   my $handle = $self->_zmq_sockets->{$alias}->{handle};
+  $handle->flush;
 
   $poe_kernel->post( $self->_zmq_zsock_sess,
     'zsock_giveup_socket',
@@ -288,6 +289,7 @@ sub _zsock_giveup_socket {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $handle = $_[ARG0];
   $kernel->select( $handle );
+  $handle->close;
 }
 
 sub _zsock_cleanup {

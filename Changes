@@ -1,5 +1,8 @@
 ## Changes for POEx::ZMQ3
 
+  * 0.00_02  (5 Jan 2013)
+    Eliminate some test failures.
+    Still running into some flaky SIGABRTs.
 
   * 0.00_01  (5 Jan 2013)
     Initial development release.
