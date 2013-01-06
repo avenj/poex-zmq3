@@ -289,7 +289,6 @@ sub _zsock_giveup_socket {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $handle = $_[ARG0];
   $kernel->select( $handle );
-  $handle->close;
 }
 
 sub _zsock_cleanup {
