@@ -36,17 +36,19 @@ sub stop {
 
 sub publish {
   my ($self, @data) = @_;
-  $self->write_zmq_socket( ZALIAS, $_ ) for @data;
+  $self->yield(sub { $self->write_zmq_socket( ZALIAS, $_ ) for @data });
   $self
 }
 
 sub publish_multipart {
   my ($self, @data) = @_;
-  while (my $data = shift @data) {
-    $self->write_zmq_socket(
-      ZALIAS, $data, (@data ? ZMQ_SNDMORE : () ) 
-    )
-  }
+  $self->yield(sub {
+    while (my $data = shift @data) {
+      $self->write_zmq_socket(
+        ZALIAS, $data, (@data ? ZMQ_SNDMORE : () ) 
+      )
+    }
+  });
   $self
 }
 
