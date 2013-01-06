@@ -25,7 +25,7 @@ POE::Session->create(
       $zsub->start( $addr );
       $poe_kernel->post( $zsub->session_id, 'subscribe' );
       $poe_kernel->post( $zpub->session_id, 'subscribe' );
-      $poe_kernel->delay( diediedie => 10 );
+      $poe_kernel->delay( diediedie => 10 => 'fatal');
     },
 
     zeromq_publishing_on => sub {
@@ -34,9 +34,10 @@ POE::Session->create(
 
     zeromq_subscribed_to => sub {
       $got->{'got subscribed_to'} = 1;
-      $zpub->yield(sub { 
+      $zsub->yield(sub { 
         $zpub->publish( 'data from ze stream' ) 
-      }) for 1 .. 100;
+          for 1 .. 100;
+      });
     },
 
     zeromq_recv => sub {
@@ -50,6 +51,7 @@ POE::Session->create(
 
     diediedie => sub {
       $_[KERNEL]->alarm_remove_all;
+      fail "Timed out" if $_[ARG0];
       $zpub->stop;
       $zsub->stop;
     },

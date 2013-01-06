@@ -74,7 +74,6 @@ sub _create_zmq_socket_sess {
         zsock_deselect => '_zsock_deselect',
         zsock_cleanup  => '_zsock_cleanup',
         zsock_handle_socket => '_zsock_handle_socket',
-        zsock_giveup_socket => '_zsock_giveup_socket',
       },
     ],
   );
@@ -272,22 +271,15 @@ sub _zsock_deselect {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $alias = $_[ARG0];
 
-  my $handle = $self->_zmq_sockets->{$alias}->{handle};
+  my $handle = delete $self->_zmq_sockets->{$alias}->{handle};
+  $kernel->select_read($handle);
 
   ## yield back and let anything pending finish up.
-  $poe_kernel->yield( 'zsock_giveup_socket',
+  $poe_kernel->yield( 'zsock_cleanup',
     $alias
   );
   
   $self
-}
-
-sub _zsock_giveup_socket {
-  my ($kernel, $self) = @_[KERNEL, OBJECT];
-  my $alias = $_[ARG0];
-  my $ref = $self->_zmq_sockets->{$alias};
-  $kernel->select( $ref->{handle} );
-  $kernel->yield( 'zsock_cleanup', $alias );
 }
 
 sub _zsock_cleanup {
