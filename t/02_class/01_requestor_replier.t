@@ -14,10 +14,10 @@ my $got = {};
 my $expected = {
   'got connected_to' => 1,
   'got replying_on'  => 1,
-  'got got_request'  => 10,
-  'request looks ok' => 10,
-  'got got_reply'    => 10,
-  'reply looks ok'   => 10,
+  'got got_request'  => 100,
+  'request looks ok' => 100,
+  'got got_reply'    => 100,
+  'reply looks ok'   => 100,
 };
 
 alarm 10;
@@ -52,7 +52,7 @@ POE::Session->create(
       $got->{'reply looks ok'}++
         if $_[ARG0] eq 'pong!';
 
-      if ($got->{'got got_reply'} == 10) {
+      if ($got->{'got got_reply'} == 100) {
         $_[KERNEL]->call( $_[SESSION], 'stopit' );
         return
       }

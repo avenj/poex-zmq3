@@ -1,5 +1,5 @@
 package POEx::ZMQ3;
-our $VERSION = '0.00_04';
+our $VERSION = '0.00_05';
 
 ## FIXME
 
