@@ -71,6 +71,7 @@ sub _create_zmq_socket_sess {
       $self => {
         _start         => '_zsock_start',
         zsock_ready    => '_zsock_ready',
+        zsock_close    => '_zsock_close',
         zsock_deselect => '_zsock_deselect',
         zsock_cleanup  => '_zsock_cleanup',
         zsock_handle_socket => '_zsock_handle_socket',
@@ -163,10 +164,8 @@ sub clear_zmq_socket {
 
   $self->_zmq_sockets->{$alias}->{closing}++;
 
-  zmq_close($zsock);
-
   $poe_kernel->post( $self->_zmq_zsock_sess,  
-    'zsock_deselect',
+    'zsock_close',
     $alias
   );
 }
@@ -261,10 +260,17 @@ sub _zsock_ready {
   ## Hum. Handle multipart specially?
 
   ## Dispatch to consumer's handler.
-  while (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
-    return if exists $ref->{closing};
+  while ( !$ref->{closing} &&
+    (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) ) {
     $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
   }
+}
+
+sub _zsock_close {
+  my ($kernel, $self, $alias) = @_[KERNEL, OBJECT, ARG0];
+  my $zsock = $self->_zmq_sockets->{$alias}->{zsock} || return;
+  zmq_close($zsock);
+  $kernel->yield( 'zsock_deselect', $alias );
 }
 
 sub _zsock_deselect {

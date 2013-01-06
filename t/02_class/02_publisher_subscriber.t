@@ -34,10 +34,12 @@ POE::Session->create(
 
     zeromq_subscribed_to => sub {
       $got->{'got subscribed_to'} = 1;
-      $zsub->yield(sub { 
-        $zpub->publish( 'data from ze stream' ) 
+      $poe_kernel->yield( 'publish_things' );
+    },
+
+    publish_things => sub {
+      $zpub->publish( 'data from ze stream' ) 
           for 1 .. 100;
-      });
     },
 
     zeromq_recv => sub {
