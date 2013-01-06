@@ -20,14 +20,15 @@ my $expected = {
   'reply looks ok'   => 10,
 };
 
+alarm 10;
 POE::Session->create(
   inline_states => {
     _start => sub {
+      $_[KERNEL]->sig(ALRM => 'fail');
       $zreply->start( $addr );
       $zrequest->start( $addr );
       $poe_kernel->post( $zreply->session_id, 'subscribe' );
       $poe_kernel->post( $zrequest->session_id, 'subscribe' );
-      $poe_kernel->delay( stopit => 10 );
     },
 
     zeromq_connected_to => sub {
@@ -62,6 +63,11 @@ POE::Session->create(
       $poe_kernel->alarm_remove_all;
       $zrequest->stop;
       $zreply->stop;
+    },
+
+    fail => sub {
+      $_[KERNEL]->call( $_[SESSION], 'stopit' );
+      fail "Timed out"
     },
   }
 );

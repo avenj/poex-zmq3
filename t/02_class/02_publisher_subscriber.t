@@ -18,14 +18,15 @@ my $expected = {
   'published data looks ok' => 3,
 };
 
+alarm 10;
 POE::Session->create(
   inline_states => {
     _start => sub {
+      $poe_kernel->sig(ALRM => 'diediedie' => 'a lot');
       $zpub->start( $addr );
       $zsub->start( $addr );
       $poe_kernel->post( $zsub->session_id, 'subscribe' );
       $poe_kernel->post( $zpub->session_id, 'subscribe' );
-      $poe_kernel->delay( diediedie => 30 => 'fatal');
     },
 
     zeromq_publishing_on => sub {

@@ -110,7 +110,6 @@ POE::Session->create(
     },
   },
 );
-## FIXME timer to shut these down if they take too long?
 
 $poe_kernel->run;
 
