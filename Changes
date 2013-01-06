@@ -1,5 +1,8 @@
 ## Changes for POEx::ZMQ3
 
+  * 0.00_04  (5 Jan 2013)
+    Be a bit more "safe" in how we treat REP / REQ pairs.
+
   * 0.00_03  (5 Jan 2013)
     Pass tests somewhat more consistently.
 

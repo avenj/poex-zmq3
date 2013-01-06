@@ -1,5 +1,5 @@
 package POEx::ZMQ3::Role::Sockets;
-our $VERSION = '0.00_02';
+our $VERSION = '0.00_04';
 
 use 5.10.1;
 use Carp;

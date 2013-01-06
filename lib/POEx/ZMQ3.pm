@@ -1,5 +1,5 @@
 package POEx::ZMQ3;
-our $VERSION = '0.00_03';
+our $VERSION = '0.00_04';
 
 ## FIXME
 
@@ -38,8 +38,11 @@ These are very simple base implementations.
 =head2 Roles
 
 L<POEx::ZMQ3::Role::Sockets> is the basic asynchronous L<POE> interface 
-to L<ZMQ::LibZMQ3> sockets; L<POEx::ZMQ3::Role::Endpoints> adds a layer of
-easy ZMQ socket endpoint/target management.
+to L<ZMQ::LibZMQ3> sockets; it can be used to add ZeroMQ sockets to any L<Moo> 
+class.
+
+L<POEx::ZMQ3::Role::Endpoints> adds a layer of 
+easy ZMQ socket endpoint/target management to L<POEx::ZMQ3::Role::Sockets>.
 
 L<MooX::Role::POE::Emitter> provides L<POE> event emitter functionality.
 
