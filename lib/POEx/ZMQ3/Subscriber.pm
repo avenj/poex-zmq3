@@ -36,9 +36,11 @@ after add_target_endpoint => sub {
 
 sub stop {
   my ($self) = @_;
-  $self->emit( 'stopped' );
-  $self->clear_zmq_socket( ZALIAS );
-  $self->_stop_emitter;
+  $self->yield(sub {
+    $self->emit( 'stopped' );
+    $self->clear_zmq_socket( ZALIAS );
+    $self->_stop_emitter;
+  });
 }
 
 sub zmq_message_ready {

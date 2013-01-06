@@ -273,6 +273,7 @@ sub _zsock_deselect {
   my $alias = $_[ARG0];
 
   my $handle = $self->_zmq_sockets->{$alias}->{handle};
+  $kernel->select_read($handle);
 
   ## yield back and let anything pending finish up.
   $poe_kernel->yield( 'zsock_giveup_socket',
@@ -286,7 +287,9 @@ sub _zsock_giveup_socket {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $alias = $_[ARG0];
   my $ref = $self->_zmq_sockets->{$alias};
-  $kernel->select( $ref->{handle} );
+  my $handle = delete $ref->{handle};
+  ## Our dup handle should go out of scope now.
+  ## ->yield one more time to let zeromq settle out.
   $kernel->yield( 'zsock_cleanup', $alias );
 }
 

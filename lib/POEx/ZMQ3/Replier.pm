@@ -24,9 +24,11 @@ after add_endpoint => sub {
 
 sub stop {
   my ($self) = @_;
-  $self->emit( 'stopped' );
-  $self->clear_zmq_socket( ZALIAS );
-  $self->_shutdown_emitter;
+  $self->yield(sub {
+    $self->emit( 'stopped' );
+    $self->clear_zmq_socket( ZALIAS );
+    $self->_shutdown_emitter;
+  });
   $self
 }
 
