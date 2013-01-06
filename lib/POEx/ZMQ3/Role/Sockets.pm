@@ -276,10 +276,7 @@ sub _zsock_deselect {
 
   ## yield back and let anything pending finish up.
   $poe_kernel->yield( 'zsock_giveup_socket',
-    $handle
-  );
-  $poe_kernel->yield( 'zsock_cleanup', 
-    $alias 
+    $alias
   );
   
   $self
@@ -287,8 +284,10 @@ sub _zsock_deselect {
 
 sub _zsock_giveup_socket {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  my $handle = $_[ARG0];
-  $kernel->select( $handle );
+  my $alias = $_[ARG0];
+  my $ref = $self->_zmq_sockets->{$alias};
+  $kernel->select( $ref->{handle} );
+  $kernel->yield( 'zsock_cleanup', $alias );
 }
 
 sub _zsock_cleanup {
