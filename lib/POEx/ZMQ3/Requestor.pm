@@ -39,7 +39,7 @@ sub request {
 
 sub zmq_message_ready {
   my ($self, $alias, $zmsg, $data) = @_;
-  $self->emit( 'got_reply', $data )
+  $self->emit_now( 'got_reply', $data )
 }
 
 1;

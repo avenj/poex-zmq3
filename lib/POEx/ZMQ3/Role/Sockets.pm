@@ -244,7 +244,8 @@ sub _zsock_handle_socket {
   );
 
   ## See if anything was prebuffered.
-  while (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) {
+  while ( !$ref->{closing} 
+    && (my $msg = zmq_recvmsg( $ref->{zsock}, ZMQ_RCVMORE )) ) {
     $self->zmq_message_ready( $alias, $msg, zmq_msg_data($msg) );
   }
 }

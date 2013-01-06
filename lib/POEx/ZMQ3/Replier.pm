@@ -24,7 +24,7 @@ after add_endpoint => sub {
 
 sub stop {
   my ($self) = @_;
-  $self->emit( 'stopped' );
+  $self->emit_now( 'stopped' );
   $self->clear_zmq_socket( ZALIAS );
   $self->_shutdown_emitter;
   $self
@@ -38,7 +38,7 @@ sub reply {
 
 sub zmq_message_ready {
   my ($self, $alias, $zmsg, $data) = @_;
-  $self->emit( 'got_request', $data );
+  $self->emit_now( 'got_request', $data );
 }
 
 1;
