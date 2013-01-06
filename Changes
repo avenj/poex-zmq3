@@ -1,9 +1,5 @@
 ## Changes for POEx::ZMQ3
 
-  * 0.00_03  (5 Jan 2013)
-    Give zeromq more time to settle out after a zmq_close.
-    ... still running into flaky 'bad FD' errors from the backend.
-
   * 0.00_02  (5 Jan 2013)
     Eliminate some test failures.
     Still running into some flaky SIGABRTs.
