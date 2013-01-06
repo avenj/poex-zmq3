@@ -383,17 +383,6 @@ Optional.
 Indicates a ZMQ socket has been cleared.
 
 
-=head2 Attributes
-
-=head3 context
-
-The B<context> attribute is the ZeroMQ context object as created by
-L<ZMQ::LibZMQ3/"zmq_init">.
-
-These objects can be shared, so long as they are reset/reconstructed 
-in any forked copies.
-
-
 =head2 Methods
 
 =head3 create_zmq_socket
