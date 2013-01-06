@@ -43,7 +43,7 @@ POE::Session->create(
       $got->{'got got_request'}++;
       $got->{'request looks ok'}++
         if $_[ARG0] eq 'ping!';
-      $zreply->reply( 'pong!' );
+      $zreply->yield( sub { $zreply->reply( 'pong!' ) });
     },
 
     zeromq_got_reply => sub {

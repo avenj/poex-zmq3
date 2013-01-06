@@ -23,20 +23,20 @@ POE::Session->create(
     _start => sub {
       $zpub->start( $addr );
       $zsub->start( $addr );
-      $poe_kernel->post( $zpub->session_id, 'subscribe' );
       $poe_kernel->post( $zsub->session_id, 'subscribe' );
+      $poe_kernel->post( $zpub->session_id, 'subscribe' );
       $poe_kernel->delay( diediedie => 10 );
     },
 
     zeromq_publishing_on => sub {
       $got->{'got publishing_on'} = 1;
-      $zpub->publish(
-        'data from ze stream'
-      ) for 1 .. 100;
     },
 
     zeromq_subscribed_to => sub {
       $got->{'got subscribed_to'} = 1;
+      $zpub->yield(sub { 
+        $zpub->publish( 'data from ze stream' ) 
+      }) for 1 .. 100;
     },
 
     zeromq_recv => sub {
