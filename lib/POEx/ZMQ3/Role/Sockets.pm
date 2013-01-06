@@ -270,7 +270,6 @@ sub _zsock_deselect {
   my $alias = $_[ARG0];
 
   my $handle = $self->_zmq_sockets->{$alias}->{handle};
-  $handle->flush;
 
   ## yield back and let anything pending finish up.
   $poe_kernel->yield( 'zsock_giveup_socket',
