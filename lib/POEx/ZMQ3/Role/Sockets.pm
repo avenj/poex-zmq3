@@ -6,8 +6,6 @@ use Carp;
 use Moo::Role;
 use strictures 1;
 
-use IO::File;
-
 use POE;
 
 use POSIX ();
@@ -105,7 +103,7 @@ sub create_zmq_socket {
   my $fd = zmq_getsockopt( $zsock, ZMQ_FD ) 
     or confess "zmq_getsockopt failed: $!";
   ## We need an actual handle to feed POE:
-  my $fh = IO::File->new("<&=$fd")
+  open( my $fh, '<&=', $fd )
     or confess "failed dup in socket creation: $!";
 
   $self->_zmq_sockets->{$alias} = +{
