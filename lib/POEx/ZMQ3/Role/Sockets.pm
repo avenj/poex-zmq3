@@ -326,7 +326,9 @@ sub _zsock_cleanup {
   $self->zmq_socket_cleared($alias) if $self->can('zmq_socket_cleared');
 }
 
-sub _zsock_start { 1 }
+sub _zsock_start {
+#  $_[KERNEL]->detach_child;
+}
 
 
 1;

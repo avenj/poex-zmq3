@@ -1,6 +1,18 @@
 use strictures 1;
 use feature 'say';
 
+## FIXME
+##  Current bug exhibited:
+##   - Sent PING    (client)
+##    * Sent PONG   (server)
+##   - Got PONG
+##   - Sent PING
+##    * Sent PONG
+##  < PONG never received by client
+##  Session is still alive (timers fire)
+##  Server is responsive
+
+
 my $addr = $ARGV[0] || 'tcp://127.0.0.1:5510';
 
 ## REQ client that talks to ping_server.pl
@@ -14,6 +26,7 @@ POE::Session->create(
       _start
       send_ping
       zeromq_connected_to
+      zeromq_registered
       zeromq_got_reply
       alive
     / ],
@@ -21,13 +34,13 @@ POE::Session->create(
 );
 
 sub _start {
-  $_[KERNEL]->alias_set('pinger');
   $_[HEAP] = POEx::ZMQ3::Requestor->new;
   $_[HEAP]->start( $addr );
   $_[KERNEL]->post( $_[HEAP]->session_id, 'subscribe' );
 }
 
-sub zeromq_connected_to {
+sub zeromq_connected_to {}
+sub zeromq_registered {
   my ($kern, $zrequest) = @_[KERNEL, HEAP];
   $kern->yield( 'send_ping' );
 }
@@ -38,7 +51,7 @@ sub zeromq_got_reply {
   say "Got PONG";
   $kern->yield( 'send_ping' );
 #  $kern->delay_add( 'send_ping' => 1 );
-  $kern->delay( 'alive' => 1 );
+  #$kern->delay( 'alive' => 1 );
 }
 
 sub alive {

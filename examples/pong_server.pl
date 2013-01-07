@@ -9,6 +9,7 @@ use POE;
 use POEx::ZMQ3::Replier;
 
 POE::Session->create(
+  heap => POEx::ZMQ3::Replier->new,
   package_states => [
     main => [ qw/
       _start
@@ -18,9 +19,9 @@ POE::Session->create(
 );
 
 sub _start {
-  $_[HEAP] = POEx::ZMQ3::Replier->new;
-  $_[HEAP]->start( $bind );
-  $_[KERNEL]->post( $_[HEAP]->session_id, 'subscribe' );
+  my ($kern, $zrep) = @_[KERNEL, HEAP];
+  $zrep->start( $bind );
+  $kern->post( $zrep->session_id, 'subscribe' );
 }
 
 sub zeromq_got_request {
