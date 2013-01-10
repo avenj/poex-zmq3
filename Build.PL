@@ -91,13 +91,14 @@ my $build = $class->new(
     'namespace::clean'          => '0.23',
 
     'Moo'                       => '1.000003',
+    'MooX::Struct'              => '0.10',
     'MooX::Role::POE::Emitter'  => '0.10',
 
     'POE'                       => '1.3',
 
     'Try::Tiny'                 => 0,
 
-    'ZMQ::LibZMQ3'              => '1.03',
+    'ZMQ::LibZMQ3'              => '1.05',
     'ZMQ::Constants'            => '1.02',
   },
 
