@@ -1,6 +1,11 @@
 package POEx::ZMQ3::Role::Sockets;
 our $VERSION = '0.00_04';
 
+
+### DEPRECATED and going away.
+###  See POEx::ZMQ3::Sockets instead.
+
+
 use 5.10.1;
 use Carp;
 use Moo::Role;
