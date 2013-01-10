@@ -41,7 +41,7 @@ sub zmqsock_registered {
 }
 
 sub zmqsock_recv {
-  my ($kern, $zmq) = $_[HEAP];
+  my ($kern, $zmq) = @_[KERNEL, HEAP];
   my ($alias, $zmsg, $data, $parts_count) = @_[ARG0 .. $#_];
 
   for ($alias) {

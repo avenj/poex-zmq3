@@ -4,7 +4,7 @@ use 5.10.1;
 use Carp;
 use Moo;
 use POE;
-
+require POSIX;
 
 use ZMQ::LibZMQ3;
 ## FIXME pull specific constants
@@ -17,6 +17,7 @@ use MooX::Role::Pluggable::Constants;
 
 use MooX::Struct -rw,
   ZMQSocket => [ qw/
+    +is_closing
     zsock
     handle
     fd
@@ -69,7 +70,9 @@ sub BUILD {
     $self => {
       zsock_ready => '_zsock_ready',
       zsock_watch => '_zsock_watch',
+      zsock_unwatch => '_zsock_unwatch',
       
+      create      => '_zpub_create',
       bind        => '_zpub_bind',
       connect     => '_zpub_connect',
       write       => '_zpub_write',
@@ -83,22 +86,25 @@ sub BUILD {
 }
 
 
-sub spawn {
+sub start {
   my ($self) = @_;
   $self->_start_emitter;
 }
 
 sub stop {
   my ($self) = @_;
-  $self->_shutdown_emitter;
+  $self->_zmq_clear_all;
+  $self->yield( 'shutdown_emitter' );
 }
 
 sub emitter_started {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
 
 }
 
 sub emitter_stopped {
-
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  $self->_zmq_clear_all;
 }
 
 
@@ -124,6 +130,15 @@ sub set_zmq_sockopt {
   $self
 }
 
+sub create {
+  my $self = shift;
+  $self->yield( 'create', @_ )
+}
+
+sub _zpub_create {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  $self->_zmq_create_sock( @_[ARG0 .. $#_] )
+}
 
 sub bind {
   my $self = shift;
@@ -176,9 +191,17 @@ sub _zpub_write {
   my $zsock = $self->get_zmq_socket($alias)
     or confess "Cannot write; no such alias $alias";
 
-  ## FIXME ZMQ_DONTWAIT and check for EAGAIN ?
-  if ( zmq_msg_send($data, $zsock, ($flags ? $flags : () ) == -1) ) {
-    confess "zmq_msg_send failed; $!"
+  $flags //= ZMQ_DONTWAIT;
+  my $rc;
+  if ( $rc = zmq_msg_send( $data, $zsock, ($flags ? $flags : ()) ) 
+     && ($rc//0) == -1 ) {
+
+    if ($rc == POSIX::EAGAIN) {
+      $self->yield( 'write', $alias, $data, $flags )
+    } else {
+      confess "zmq_msg_send failed; $!";
+    }
+
   }
   1
 }
@@ -205,30 +228,47 @@ sub _zsock_ready {
     return
   }
 
-  ## FIXME better err handling esp. zmq_msg_data ?
-  my $msg = zmq_msg_init;
-  ## FIXME
-  ##  use ZMQ_DONTWAIT ?
-  my $parts_count = 1;
-  RECV: while (1) {
-    if ( zmq_msg_recv($msg, $struct->zsock) == -1 ) {
-      confess "zmq_msg_recv failed; $!"
-    }
-
-    unless ( zmq_getsockopt($struct->zsock, ZMQ_RCVMORE) ) {
-      ## No more message parts.
-      $self->emit( recv => 
-        $alias, 
-        $msg, 
-        zmq_msg_data($msg), 
-        $parts_count 
-      )
-      last RECV
-    }
-    ## More parts to follow.
-    $parts_count++;
+  if ($struct->is_closing) {
+    warn "Socket '$alias' read-ready but closing"
+      if $ENV{POEX_ZMQ_DEBUG};
+    return
   }
 
+  while (my $msg = zmq_recvmsg( $struct->zsock, ZMQ_RCVMORE )) {
+    $self->emit( recv => $alias, $msg, zmq_msg_data($msg) )
+  }
+
+  ## FIXME better err handling esp. zmq_msg_data ?
+#  my $msg = zmq_msg_init;
+#  warn 'DEBUG init msg';
+#  ## FIXME
+#  ##  use ZMQ_DONTWAIT ?
+#  my $parts_count = 1;
+#  RECV: while (1) {
+#    if ( zmq_msg_recv($msg, $struct->zsock, ZMQ_DONTWAIT) == -1 ) {
+#      return if $! == POSIX::EAGAIN;
+#      confess "zmq_msg_recv failed; $!"
+#      return
+#    }
+#
+#    warn 'DEBUG recv msg';
+#
+#    unless ( zmq_getsockopt($struct->zsock, ZMQ_RCVMORE) ) {
+#      warn 'DEBUG no rcvmore';
+#      ## No more message parts.
+#      $self->emit( recv => 
+#        $alias, 
+#        $msg, 
+#        zmq_msg_data($msg), 
+#        $parts_count 
+#      );
+#      last RECV
+#    }
+#    warn 'DEBUG more to recv';
+#    ## More parts to follow.
+#    $parts_count++;
+#  }
+#
   1  
 }
 
@@ -241,6 +281,7 @@ sub _zmq_create_sock {
 
   my $zsock = zmq_socket( $self->context, $type )
     or confess "zmq_socket failed: $!";
+
   my $fd = zmq_getsockopt( $zsock, ZMQ_FD )
     or confess "zmq_getsockopt failed: $!";
 
@@ -252,9 +293,10 @@ sub _zmq_create_sock {
     fd     => $fd,
   );
 
-  $poe_kernel->call( $self->session_id, zsock_watch => $alias );
+  ## FIXME adjust IPV4ONLY if we have ->use_ipv6 or so?
+  $self->set_zmq_sockopt($alias, ZMQ_LINGER, 0);
 
-  $alias
+  $self->call( zsock_watch => $alias )
 }
 
 sub _zsock_watch {
@@ -273,8 +315,26 @@ sub _zsock_watch {
   1
 }
 
+sub _zsock_unwatch {
+  my ($kernel, $self, $alias) = @_[KERNEL, OBJECT, ARG0];
+  my $struct = delete $self->_zmq_sockets->{$alias};
+  $kernel->select_read( $struct->handle )
+}
+
 sub _zmq_clear_sock {
-  ## FIXME
+  my ($self, $alias) = @_;
+
+  my $zsock = $self->get_zmq_socket($alias);
+
+  zmq_close($zsock);
+  $self->_zmq_sockets->{$alias}->is_closing(1);
+  
+  $self->yield( zsock_unwatch => $alias )
+}
+
+sub _zmq_clear_all {
+  my ($self) = @_;
+  $self->_zmq_clear_sock($_) for keys %{ $self->_zmq_sockets }
 }
 
 1;
