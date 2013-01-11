@@ -1,5 +1,6 @@
 package POEx::ZMQ3::Context;
 use strictures 1;
+use Carp 'confess';
 
 use ZMQ::LibZMQ3 'zmq_ctx_new', 'zmq_ctx_destroy';
 
@@ -12,7 +13,7 @@ sub new {
 }
 
 sub _new {
-  zmq_ctx_new(1)
+  zmq_ctx_new(1) or confess "zmq_ctx_new failed: $!"
 }
 
 sub term {

@@ -4,11 +4,13 @@ my $addr = 'tcp://127.0.0.1:' . empty_port;
 
 use POE;
 
+use_ok 'POEx::ZMQ3::Sockets';
 use_ok 'POEx::ZMQ3::Requestor';
 use_ok 'POEx::ZMQ3::Replier';
 
-my $zrequest = POEx::ZMQ3::Requestor->new;
-my $zreply   = POEx::ZMQ3::Replier->new;
+my $zmq = POEx::ZMQ3::Sockets->new;
+my $zrequest = POEx::ZMQ3::Requestor->new( );#zmq => $zmq );
+my $zreply   = POEx::ZMQ3::Replier->new( );#zmq => $zmq );
 
 my $got = {};
 my $expected = {

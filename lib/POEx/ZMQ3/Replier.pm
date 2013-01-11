@@ -1,44 +1,63 @@
 package POEx::ZMQ3::Replier;
 
+use Carp;
 use Moo;
+use POE;
 
-use ZMQ::Constants 'ZMQ_REP';
+use namespace::clean;
 
 sub ZALIAS () { 'rep' }
 
 with 'POEx::ZMQ3::Role::Emitter';
-with 'POEx::ZMQ3::Role::Endpoints';
+
+has listen => (
+  is => 'ro',
+  default => sub { [] },
+);
 
 sub start {
   my ($self, @endpoints) = @_;
+
+  push @{ $self->listen }, @endpoints;
+  $self->zmq->start;
+  $self->zmq->create( ZALIAS, 'REP' );
+
   $self->_start_emitter;
-  $self->create_zmq_socket( ZALIAS, ZMQ_REP );
-  $self->add_endpoint( ZALIAS, $_ ) for @endpoints;
-  $self
 }
 
-after add_endpoint => sub {
+sub emitter_started {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+
+  $poe_kernel->call( $self->zmq->session_id, subscribe => 'all' );
+  while (my $target = shift @{ $self->listen }) {
+    $self->add_bind( ZALIAS, $target )
+  }
+  1
+}
+
+after add_bind => sub {
   my ($self, $alias, $endpoint) = @_;
-  $self->emit_now( 'replying_on', $endpoint );
+  $self->emit( 'replying_on', $endpoint )
 };
 
 sub stop {
   my ($self) = @_;
-  $self->emit_now( 'stopped' );
-  $self->clear_zmq_socket( ZALIAS );
-  $self->_shutdown_emitter;
-  $self
+  $self->zmq->stop;
+  $self->_shutdown_emitter
 }
 
 sub reply {
   my ($self, $data) = @_;
-  $self->write_zmq_socket( ZALIAS, $data );
-  $self
+  $self->zmq->write( ZALIAS, $data )
 }
 
-sub zmq_message_ready {
-  my ($self, $alias, $zmsg, $data) = @_;
-  $self->emit_now( 'got_request', $data );
+sub zmqsock_created {}
+sub zmqsock_registered {}
+
+sub zmqsock_recv {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my ($alias, undef, $data) = @_[ARG0 .. $#_];
+  $self->emit( 'got_request', $data );
 }
 
 1;
@@ -118,7 +137,7 @@ Should be called out of a L</zeromq_got_request> handler.
 
 =head3 zeromq_replying_on
 
-Emitted when we are initialized; $_[ARG0] is the endpoint we are waiting for
+Emitted when we add a bound endpoint; $_[ARG0] is the endpoint we are waiting for
 requests on.
 
 =head3 zeromq_got_request

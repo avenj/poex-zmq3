@@ -28,7 +28,6 @@ POE::Session->create(
       zeromq_connected_to
       zeromq_registered
       zeromq_got_reply
-      alive
     / ],
   ],
 );
@@ -49,15 +48,7 @@ sub zeromq_got_reply {
   my ($kern, $zrequest, $sess) = @_[KERNEL, HEAP, SESSION];
   my $data = $_[ARG0];
   say "Got PONG";
-  $kern->yield( 'send_ping' );
-#  $kern->delay_add( 'send_ping' => 1 );
-  #$kern->delay( 'alive' => 1 );
-}
-
-sub alive {
-  my ($kern, $sess) = @_[KERNEL, SESSION];
-  say "I'm still alive!";
-  $kern->delay( 'alive' => 1 );
+  $kern->delay_add( 'send_ping' => 1 );
 }
 
 sub send_ping {
