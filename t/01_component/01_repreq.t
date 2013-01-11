@@ -32,7 +32,6 @@ sub _start {
 
 sub zmqsock_registered {
   my $zmq = $_[HEAP];
-  diag "Registered";
   $zmq->create( 'server', 'REP' );
   $zmq->create( 'client', 'REQ' );
   $zmq->bind( 'server', $addr );
