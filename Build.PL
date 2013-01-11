@@ -97,7 +97,7 @@ my $build = $class->new(
 
     'Try::Tiny'                 => 0,
 
-    'ZMQ::LibZMQ3'              => '1.03',
+    'ZMQ::LibZMQ3'              => '1.05',
     'ZMQ::Constants'            => '1.02',
   },
 

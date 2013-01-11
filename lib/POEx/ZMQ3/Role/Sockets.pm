@@ -252,6 +252,8 @@ sub _zsock_write {
     confess "zmq_sendmsg failed: $!";
   }
 
+  $kernel->yield( zsock_ready => undef, undef, $alias );
+
   $self
 }
 

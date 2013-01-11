@@ -1,7 +1,7 @@
 package POEx::ZMQ3::Context;
 use strictures 1;
 
-use ZMQ::LibZMQ3 'zmq_init', 'zmq_term';
+use ZMQ::LibZMQ3 'zmq_ctx_new', 'zmq_ctx_destroy';
 
 sub new {
   my $class = shift;
@@ -12,7 +12,7 @@ sub new {
 }
 
 sub _new {
-  zmq_init(1)
+  zmq_ctx_new(1)
 }
 
 sub term {
@@ -20,7 +20,7 @@ sub term {
   $class = ref $class || $class;
   my $ctxt = $class->new;
   $class->reset;
-  zmq_term($ctxt)
+  zmq_ctx_destroy($ctxt)
 }
 
 sub reset {
