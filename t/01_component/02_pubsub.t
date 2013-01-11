@@ -39,6 +39,7 @@ sub zmqsock_registered {
 
   $zmq->bind( 'server', $addr );
   $zmq->connect( 'client', $addr );
+  $zmq->set_zmq_subscribe( 'client' );
 
   $kern->yield( 'publish_things' );
 }
@@ -47,7 +48,7 @@ sub publish_things {
   my ($kern, $zmq) = @_[KERNEL, HEAP];
   diag "Publishing things";
   $zmq->write( 'server', 'A published message' );
-  $kern->delay( publish_things => 0.5 )
+  $kern->delay( publish_things => 1 )
 }
 
 sub zmqsock_recv {

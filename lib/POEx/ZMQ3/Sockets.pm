@@ -112,7 +112,6 @@ sub emitter_stopped {
   $self->_zmq_clear_all;
 }
 
-
 sub get_zmq_socket {
   my ($self, $alias) = @_;
   confess "Expected an alias" unless defined $alias;
@@ -120,6 +119,7 @@ sub get_zmq_socket {
   $struct->zsock
 }
 
+## FIXME POE interfaces to sockopt setters
 sub set_zmq_sockopt {
   my ($self, $alias) = splice @_, 0, 2;
   confess "Expected an alias and params to feed zmq_setsockopt"
@@ -133,6 +133,13 @@ sub set_zmq_sockopt {
   }
 
   $self
+}
+
+sub set_zmq_subscribe {
+  ## Common sockopt.
+  my ($self, $alias, $to) = @_;
+  $to //= '';
+  $self->set_zmq_sockopt( $alias, ZMQ_SUBSCRIBE, $to )
 }
 
 sub create {
@@ -203,6 +210,7 @@ sub _zsock_write {
   my $alias = $_[ARG0];
   my $struct = $self->_zmq_sockets->{$alias}
     || confess "Cannot execute write; no such alias $alias";
+
   return unless $struct->buffer and @{ $struct->buffer };
 
   my $next  = $struct->buffer->[0];
@@ -215,6 +223,7 @@ sub _zsock_write {
   ## This socket may change state without necessarily
   ## triggering read events. See zmq_getsockopt docs.
   $self->yield( zsock_ready => undef, 0, $alias );
+  $self->yield( zsock_write => $alias );
 
   my $rc;
   if ( $rc = zmq_msg_send( $data, $struct->zsock, ($flags ? $flags : ()) ) 
@@ -223,7 +232,6 @@ sub _zsock_write {
     unless ($rc == POSIX::EAGAIN || $rc == POSIX::EINTR) {
       confess "zmq_msg_send failed; $!";
     }
-    $self->yield( 'zsock_write', $alias )
   } else {
     ## Successfully queued on socket.
     shift @{ $struct->buffer }
@@ -255,6 +263,9 @@ sub _zsock_ready {
 
   return unless 
     zmq_getsockopt($struct->zsock, ZMQ_EVENTS) & ZMQ_POLLIN == ZMQ_POLLIN;
+  ## Socket can change state after a write/read without notifying us.
+  ## Check again when we're finished.
+  $self->yield( zsock_ready => undef, 0, $alias );
 
   if ($struct->is_closing) {
     warn "Socket '$alias' ready but closing"
@@ -304,7 +315,7 @@ sub _zmq_create_sock {
   my $fd = zmq_getsockopt( $zsock, ZMQ_FD )
     or confess "zmq_getsockopt failed: $!";
 
-  open(my $fh, '+<&=', $fd ) or confess "failed fdopen: $!";
+  open(my $fh, '<&=', $fd ) or confess "failed fdopen: $!";
 
   $self->_zmq_sockets->{$alias} = ZMQSocket->new(
     zsock  => $zsock,
