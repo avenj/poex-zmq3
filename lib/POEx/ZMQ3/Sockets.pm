@@ -177,9 +177,7 @@ sub _zpub_connect {
     unless defined $alias and defined $endpt;
   my $zsock = $self->get_zmq_socket($alias)
     or confess "Cannot connect; no such alias $alias";
-  if ( zmq_connect($zsock, $endpt) ) {
-    confess "zmq_connect failed; $!"
-  }
+  zmq_connect($zsock, $endpt) and confess "zmq_connect failed; $!";
   1
 }
 
