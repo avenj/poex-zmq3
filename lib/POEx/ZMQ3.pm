@@ -1,5 +1,5 @@
 package POEx::ZMQ3;
-our $VERSION = '0.00_11';
+our $VERSION = '0.01';
 use strictures 1;
 
 sub new {
@@ -41,7 +41,10 @@ L<http://github.com/avenj/poex-zmq3>
 =head2 Classes
 
 L<POEx::ZMQ3::Sockets> is the backend ZMQ component. It can be used directly
-to add ZeroMQ functionality to your POE applications.
+to add flexible ZeroMQ functionality to your POE applications.
+
+There are some higher-level components providing simple access to single
+sockets belonging to basic types:
 
 L<POEx::ZMQ3::Publisher> and L<POEx::ZMQ3::Subscriber> implement PUB and SUB
 type ZeroMQ sockets.

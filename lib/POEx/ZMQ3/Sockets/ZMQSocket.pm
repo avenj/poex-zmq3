@@ -1,9 +1,12 @@
 package POEx::ZMQ3::Sockets::ZMQSocket;
 
+
+## Internal to POEx::ZMQ3::Sockets.
+
+
 use 5.10.1;
 use Carp;
 use Moo;
-
 
 has is_closing => (
   is        => 'rw',

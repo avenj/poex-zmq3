@@ -11,6 +11,7 @@ lib/POEx/ZMQ3/Replier.pm
 lib/POEx/ZMQ3/Requestor.pm
 lib/POEx/ZMQ3/Role/Emitter.pm
 lib/POEx/ZMQ3/Sockets.pm
+lib/POEx/ZMQ3/Sockets/ZMQSocket.pm
 lib/POEx/ZMQ3/Subscriber.pm
 Makefile.PL
 MANIFEST			This list of files

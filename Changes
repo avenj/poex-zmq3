@@ -1,5 +1,8 @@
 ## Changes for POEx::ZMQ3
 
+  * 0.01     (11 Jan 2013)
+    Minor cleanups; first non-devel release.
+
   * 0.00_10  (11 Jan 2013)
     Re-designed/re-worked:
      - POEx::ZMQ3::Sockets added. This is the new backend component.
