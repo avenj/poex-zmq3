@@ -20,9 +20,10 @@ POEx::ZMQ3 - POE-enabled asynchronous ZeroMQ components
 =head1 SYNOPSIS
 
   use POEx::ZMQ3;
+  ## A POEx::ZMQ3::Sockets instance:
   my $zmq = POEx::ZMQ3->new;
 
-(See L<POEx::ZMQ3::Sockets> for a more complete example.)
+(See L<POEx::ZMQ3::Sockets> for a complete example.)
 
 =head1 DESCRIPTION
 
@@ -34,9 +35,9 @@ concurrent/distributed applications. (If you're just getting started with
 ZeroMQ, it is strongly advised you read the 'zguide'
 (L<http://zguide.zeromq.org>) before jumping in.)
 
-This is an early development release; interfaces are potentially subject to
-change. Help would be welcome, of course -- jump in on GitHub: 
-L<http://github.com/avenj/poex-zmq3>
+This project attempts to stay on top of changes in ZeroMQ and the relevant
+Perl bindings. 
+You will need B<zeromq-3.2.2> or newer: L<http://www.zeromq.org>
 
 =head2 Classes
 

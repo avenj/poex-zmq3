@@ -1,5 +1,4 @@
 use strictures 1;
-
 use feature 'say';
 my $bind = $ARGV[0] || 'tcp://127.0.0.1:5510';
 
@@ -31,7 +30,7 @@ sub zeromq_got_request {
     say "Got PING, sending PONG";
     $zrep->reply('pong!')
   } else {
-    warn "Don't know what to do with request $data"
+    die "Don't know what to do with request $data"
   }
 }
 

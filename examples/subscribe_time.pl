@@ -7,6 +7,7 @@ use POE;
 use POEx::ZMQ3::Subscriber;
 
 POE::Session->create(
+  heap => POEx::ZMQ3::Subscriber->new,
   package_states => [
     main => [ qw/
       _start
@@ -16,9 +17,9 @@ POE::Session->create(
 );
 
 sub _start {
-  $_[HEAP] = POEx::ZMQ3::Subscriber->new;
-  $_[HEAP]->start( $bind );
-  $_[KERNEL]->post( $_[HEAP]->session_id, 'subscribe' );
+  my ($kern, $zsub) = @_[KERNEL, HEAP];
+  $zsub->start( $bind );
+  $kern->post( $zsub => 'subscribe' );
 }
 
 sub zeromq_received {

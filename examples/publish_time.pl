@@ -7,6 +7,7 @@ use POE;
 use POEx::ZMQ3::Publisher;
 
 POE::Session->create(
+  heap => POEx::ZMQ3::Publisher->new,
   package_states => [
     main => [ qw/
       _start
@@ -17,13 +18,13 @@ POE::Session->create(
 );
 
 sub _start {
-  $_[HEAP] = POEx::ZMQ3::Publisher->new;
-  $_[HEAP]->start( $bind );
-  $_[KERNEL]->post( $_[HEAP]->session_id, 'subscribe', 'all' );
+  my ($kern, $zpub) = @_[KERNEL, HEAP];
+  $zpub->start( $bind );
+  $kern->post( $zpub => 'subscribe' );
 }
 
 sub zeromq_publishing_on {
-  my ($kern, $zpub, $sess) = @_[KERNEL, HEAP, SESSION];
+  my ($kern, $zpub) = @_[KERNEL, HEAP];
   say "Publishing on $bind";
   $kern->delay( publish => 1 );
 }

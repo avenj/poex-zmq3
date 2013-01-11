@@ -640,6 +640,8 @@ close
 
 =head1 SEE ALSO
 
+L<POEx::ZMQ3>
+
 L<ZMQ::LibZMQ3>
 
 L<http://www.zeromq.org>
