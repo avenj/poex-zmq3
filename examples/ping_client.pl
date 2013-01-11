@@ -13,7 +13,6 @@ POE::Session->create(
     main => [ qw/
       _start
       send_ping
-      zeromq_connected_to
       zeromq_registered
       zeromq_got_reply
     / ],
@@ -26,7 +25,6 @@ sub _start {
   $kern->post( $zrequest => 'subscribe' );
 }
 
-sub zeromq_connected_to {}
 sub zeromq_registered {
   my ($kern, $zrequest) = @_[KERNEL, HEAP];
   $kern->yield( 'send_ping' );
