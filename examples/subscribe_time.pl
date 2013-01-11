@@ -10,7 +10,7 @@ POE::Session->create(
   package_states => [
     main => [ qw/
       _start
-      zeromq_recv
+      zeromq_received
     / ],
   ],
 );
@@ -21,7 +21,7 @@ sub _start {
   $_[KERNEL]->post( $_[HEAP]->session_id, 'subscribe' );
 }
 
-sub zeromq_recv {
+sub zeromq_received {
   my ($kern, $zsub, $data) = @_[KERNEL, HEAP, ARG0];
   say "Server says: $data";
 }

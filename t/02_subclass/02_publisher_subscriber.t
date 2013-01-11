@@ -41,7 +41,7 @@ POE::Session->create(
       $got->{'got subscribed_to'} = 1;
     },
 
-    zeromq_recv => sub {
+    zeromq_received => sub {
       $got->{'received published'}++;
       $got->{'published data looks ok'}++
         if $_[ARG0] eq 'hello listeners!';

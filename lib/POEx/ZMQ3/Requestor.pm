@@ -114,8 +114,7 @@ POEx::ZMQ3::Requestor - A REQ-type ZeroMQ socket
 
 =head1 DESCRIPTION
 
-A ZeroMQ REQ-type socket using L<POEx::ZMQ3::Role::Endpoints> and
-L<MooX::Role::POE::Emitter>.
+A ZeroMQ REQ-type socket using L<POEx::ZMQ3::Role::Emitter>.
 
 ZeroMQ REQ and REP (Requestors and Repliers) work synchronously; a REQ is
 expected to start the conversation and one request should generate one reply.

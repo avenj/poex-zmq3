@@ -54,6 +54,9 @@ This is the singleton used internally by L<POEx::ZMQ3> bits.
 Forked children should call C<< POEx::ZMQ3::Context->reset >> before 
 issuing new socket operations.
 
+Calling C<< POEx::ZMQ::Context->term >> will force a context termination.
+This may block (and is rarely needed); see the man page for zmq_ctx_destroy.
+
 =head1 AUTHOR
 
 Jon Portnoy <avenj@cobaltirc.org>

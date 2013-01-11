@@ -244,7 +244,8 @@ sub close {
 sub _zpub_close {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $alias = $_[ARG0];
-  $self->_zmq_clear_sock($alias)
+  $self->_zmq_clear_sock($alias);
+  $self->emit( 'closing', $alias );
 }
 
 ## Workers.
@@ -379,7 +380,243 @@ POEx::ZMQ3::Sockets - POE-enabled ZeroMQ sockets
 
 =head1 SYNOPSIS
 
+  ## A 'REQ' client that sends 'PING' to a REP on localhost:5050
+  use strictures 1;
+  use POE;
+  use POEx::ZMQ3::Sockets;
+
+  POE::Session->create(
+    package_states => [
+      main => [ qw/
+        _start
+        zmqsock_registered
+        zmqsock_recv
+      / ],
+    ]
+  );
+
+  sub _start {
+    my ($kern, $heap) = @_[KERNEL, HEAP];
+    my $zmq = POEx::ZMQ3::Sockets->new;
+
+    $zmq->start;
+
+    $heap->{zmq} = $zmq;
+
+    $kern->call( $zmq->session_id, 'subscribe', 'all' );
+  }
+
+  sub zmqsock_registered {
+    my ($kern, $heap) = @_[KERNEL, HEAP];
+    my $zmq = $heap->{zmq};
+
+    $zmq->create( 'pinger', 'REQ' );
+
+    $zmq->connect( 'pinger', 'tcp://127.0.0.1:5050' );
+
+    $zmq->write( 'pinger', 'PING' );
+  }
+
+  sub zmqsock_recv {
+    my ($kern, $heap) = @_[KERNEL, HEAP];
+    my ($alias, $zmsg, $data) = @_[ARG0 .. $#_];
+
+    if ($data eq 'PONG') {
+      ## Got a PONG. Send another PING:
+      $zmq->write( 'pinger', 'PING' );
+    }
+  }
+
+  $poe_kernel->run;
+
 =head1 DESCRIPTION
+
+This is the backend L<MooX::Role::POE::Emitter> session behind L<POEx::ZMQ3>,
+integrating ZeroMQ (L<http://www.zeromq.org>) with a L<POE> event loop.
+
+=head2 Registering Sessions
+
+Your L<POE::Session> should register with the component to receive events:
+
+  ## Inside a POE::Session
+  ## Get all events from component in $_[HEAP]->{zmq}:
+  sub my_start {
+    my $zmq = $_[HEAP]->{zmq};
+    $_[KERNEL]->call( $zmq->session_id, 'subscribe', 'all' );
+  }
+
+See L</POE API> for more on events emitted and accepted by this component.
+
+See L<MooX::Role::POE::Emitter> for more details on event emitters.
+
+=head2 Methods
+
+=head3 start
+
+Takes no arguments.
+
+Spawns the L<MooX::Role::POE::Emitter> session that controls ZMQ socket
+handling. Must be called prior to operating on sockets.
+
+=head3 stop
+
+Takes no arguments.
+
+Stops the component, closing out all active sockets.
+
+=head3 create
+
+Takes a socket alias and a socket type.
+
+Creates a new ZeroMQ socket. The socket is not initially bound/connected to
+anything; see L</bind>, L</connect>.
+
+The socket type may be either a constant from L<ZMQ::Constants> or a
+string type:
+
+  ## Equivalent:
+  $zmq->create( $alias, 'PUB' );
+  use ZMQ::Constants 'ZMQ_PUB';
+  $zmq->create( $alias, ZMQ_PUB );
+
+See the B<zmq_socket> man page for details.
+
+=head3 bind
+
+Takes a socket alias and an endpoint to listen for connections on.
+
+The opposite of L</bind> is L</connect>
+
+=head3 connect
+
+Takes a socket alias and a target endpoint to connect to.
+
+Note that ZeroMQ manages its own connections asynchronously.
+A successful L</bind> or L</connect> is not necessarily indicative of a
+positively usable connection.
+
+=head3 write
+
+Takes a socket alias, some data (as a scalar), and optional flags to pass to
+ZeroMQ's B<zmq_msg_send>:
+
+  ## Write a simple message:
+  $zmq->write( $alias, 'A message' );
+
+  ## Write some serialized data:
+  my $ref  = { things => 'some data' };
+  my $data = Storable::nfreeze( $ref );
+  $zmq->write( $alias, $data );
+
+Writes data to the ZMQ socket, when possible.
+
+=head3 close
+
+Takes a socket alias.
+
+Closes the specified ZMQ socket.
+
+=head3 context
+
+Takes no arguments.
+
+Returns the current L<POEx::ZMQ3::Context> object.
+
+=head3 get_zmq_socket
+
+Takes a socket alias.
+
+Returns the actual L<ZMQ::LibZMQ3> socket object.
+
+=head3 set_zmq_sockopt
+
+Takes a socket alias and arbitrary flags/options to pass to
+B<zmq_setsockopt>.
+
+See the man page for B<zmq_setsockopt>.
+
+=head3 set_zmq_subscribe
+
+Takes a socket alias and an optional subscription prefix.
+
+Calls L</set_zmq_sockopt> to set the C<ZMQ_SUBSCRIBE> flag for the specified
+socket; this is used by SUB-type sockets to subscribe to messages.
+
+If no subscription prefix is specified, the socket will be subscribed to all
+messages.
+
+=head2 POE API
+
+=head3 Emitted Events
+
+=head4 zmqsock_bind_added
+
+Emitted when a L</bind> has been executed.
+
+$_[ARG0] is the socket's alias.
+
+$_[ARG1] is the endpoint string.
+
+=head4 zmqsock_connect_added
+
+Emitted when a L</connect> has been executed.
+
+$_[ARG0] is the socket's alias.
+
+$_[ARG1] is the endpoint string.
+
+=head4 zmqsock_recv
+
+Emitted when some data has been received on a socket.
+
+$_[ARG0] is the socket's alias.
+
+$_[ARG1] is the actual L<ZMQ::LibZMQ3> message object.
+
+$_[ARG2] is the raw message data extracted via B<zmq_msg_data>.
+
+=head4 zmqsock_created
+
+Emitted when a socket has been created.
+
+$_[ARG0] is the alias that was spawned.
+
+$_[ARG1] is the socket's type, as a L<ZMQ::Constants> constant.
+
+=head4 zmqsock_closing
+
+Emitted when a socket is being shut down.
+
+$_[ARG0] is the alias that is closing.
+
+=head3 Accepted Events
+
+The following events take the same parameters as their counterparts described
+in L</Methods>:
+
+=over
+
+=item *
+
+create
+
+=item *
+
+bind
+
+=item *
+
+connect
+
+=item *
+
+write
+
+=item *
+
+close
+
+=back
 
 =head1 SEE ALSO
 

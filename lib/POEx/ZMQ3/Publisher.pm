@@ -100,9 +100,7 @@ POEx::ZMQ3::Publisher - A PUB-type ZeroMQ socket
 
 =head1 DESCRIPTION
 
-A lightweight ZeroMQ publisher-type socket using
-L<POEx::ZMQ3::Role::Endpoints> and L<MooX::Role::POE::Emitter> (see their
-respective documentation for relevant methods).
+A lightweight ZeroMQ publisher-type socket using L<POEx::ZMQ3::Role::Emitter>.
 
 =head2 Methods
 
@@ -125,14 +123,6 @@ Stop the Publisher, closing out the socket and stopping the event emitter.
 Publish some item(s) to the ZeroMQ socket.
 
 This base class does no special serialization on its own.
-
-=head3 publish_multipart
-
-  $zsub->publish_multipart( $envelope, @data );
-
-Publish a multipart message.
-
-See the ZeroMQ documentation for more on multipart messages.
 
 =head2 Events
 

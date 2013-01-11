@@ -1,5 +1,7 @@
 * Incoming multi-part needs a gander
 
+* Need to make sure tests all have safety alarm()s
+
 * Unimplemented classes:
   POEx::ZMQ3::
     Vent

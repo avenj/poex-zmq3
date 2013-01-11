@@ -105,8 +105,7 @@ POEx::ZMQ3::Replier - A REP-type ZeroMQ socket
 
 =head1 DESCRIPTION
 
-A ZeroMQ REP-type socket using L<POEx::ZMQ3::Role::Endpoints> and
-L<MooX::Role::POE::Emitter>.
+A ZeroMQ REP-type socket using L<POEx::ZMQ3::Role::Emitter>.
 
 A REP-type socket waits for a request (see L<POEx::ZMQ3::Requestor>) and
 issues a reply accordingly.

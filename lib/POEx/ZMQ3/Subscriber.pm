@@ -54,7 +54,7 @@ sub zmqsock_created {}
 sub zmqsock_recv {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, undef, $data) = @_[ARG0 .. $#_];
-  $self->emit( 'recv', $data )
+  $self->emit( 'received', $data )
 }
 
 1;
@@ -92,7 +92,7 @@ POEx::ZMQ3::Subscriber - A SUB-type ZeroMQ socket
         print "Subscribed to $target\n";
       },
 
-      zeromq_recv => {
+      zeromq_received => {
         my $data = $_[ARG0];
         print "Received $data from publisher\n";
 
@@ -111,10 +111,9 @@ POEx::ZMQ3::Subscriber - A SUB-type ZeroMQ socket
 =head1 DESCRIPTION
 
 A lightweight ZeroMQ subscriber-type socket using
-L<POEx::ZMQ3::Role::Endpoints> and L<MooX::Role::POE::Emitter> (see their
-respective documentation for relevant methods).
+L<POEx::ZMQ3::Role::Emitter>.
 
-This is a simple subscriber; it indiscriminately receives all published
+This is a simple subscriber; by default it indiscriminately receives all published
 messages without filtering.
 
 =head2 Methods
@@ -137,7 +136,7 @@ Stop the Subscriber, closing out the socket and stopping the event emitter.
 
 Emitted when we are initialized; $_[ARG0] is the target publisher's address.
 
-=head3 zeromq_recv
+=head3 zeromq_received
 
 Emitted when we receive data from the publisher we are subscribed to; $_[ARG0]
 is the (raw) data received. (No special handling of multipart messages
