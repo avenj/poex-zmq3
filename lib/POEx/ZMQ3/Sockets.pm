@@ -8,26 +8,38 @@ require POSIX;
 
 use ZMQ::LibZMQ3;
 ## FIXME pull specific constants
-use ZMQ::Constants ':all';
+use ZMQ::Constants 
+  ## Socket types.
+  qw/
+    ZMQ_REQ ZMQ_REP
+    ZMQ_DEALER ZMQ_ROUTER
+    ZMQ_PUB ZMQ_SUB
+    ZMQ_XPUB ZMQ_XSUB
+    ZMQ_PUSH ZMQ_PULL
+    ZMQ_PAIR
+ /,
+ ## Socket control.
+ qw/
+   ZMQ_EVENTS
+   ZMQ_FD 
+   ZMQ_LINGER
+   ZMQ_POLLIN
+   ZMQ_SUBSCRIBE
+ /,
+ ## Send/recv.
+ qw/
+   ZMQ_DONTWAIT
+   ZMQ_RCVMORE ZMQ_SNDMORE
+ /,
+ ;
 
 
 with 'MooX::Role::POE::Emitter';
 use MooX::Role::Pluggable::Constants;
 
+require POEx::ZMQ3::Sockets::ZMQSocket;
+sub ZMQSocket () { 'POEx::ZMQ3::Sockets::ZMQSocket' }
 
-use MooX::Struct -rw,
-  ZMQSocket => [ qw/
-    +is_closing
-    zsock!
-    handle!
-    fd!
-    @buffer
-  / ],
-  BufferItem => [ qw/
-    data
-    flags
-  / ],
-;
 
 require POEx::ZMQ3::Context;
 has context => (
@@ -201,8 +213,8 @@ sub _zpub_write {
 
   my $ref = $self->_zmq_sockets->{$alias}
     || confess "Cannot queue write; no such alias $alias";
-  my $item = BufferItem->new(data  => $data, flags => $flags);
-  $ref->buffer ? push(@{ $ref->buffer }, $item) : $ref->buffer([ $item ]);
+  my $item = ZMQSocket->new_buffer_item(data => $data, flags => $flags);
+  push @{ $ref->buffer }, $item;
 
   $self->call( 'zsock_write', $alias );
 }
@@ -213,7 +225,7 @@ sub _zsock_write {
   my $struct = $self->_zmq_sockets->{$alias}
     || confess "Cannot execute write; no such alias $alias";
 
-  return unless $struct->buffer and @{ $struct->buffer };
+  return unless @{ $struct->buffer };
 
   my $next  = $struct->buffer->[0];
   my $data  = $next->data;

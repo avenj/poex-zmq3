@@ -1,4 +1,7 @@
-* Incoming multi-part needs a gander
+* Multi-part
+  Sockets.pm needs its read handler fixed;
+   parts should probably go into an array or array-like object
+
 
 * Unimplemented classes:
   POEx::ZMQ3::
