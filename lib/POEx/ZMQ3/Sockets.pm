@@ -54,7 +54,7 @@ my %stringy_types = (
   PUSH    => ZMQ_PUSH,
   PULL    => ZMQ_PULL,
 
-  PAIR => ZMQ_PAIR,
+  PAIR    => ZMQ_PAIR,
 );
 
 
@@ -104,7 +104,7 @@ sub stop {
 
 sub emitter_started {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-
+  $self->emit( 'ready' );
 }
 
 sub emitter_stopped {
@@ -162,9 +162,11 @@ sub _zpub_bind {
   my ($alias, $endpt) = @_[ARG0 .. $#_];
   confess "Expected an alias and endpoint"
     unless defined $alias and defined $endpt;
+
   my $zsock = $self->get_zmq_socket($alias)
     or confess "Cannot bind; no such alias $alias";
   zmq_bind($zsock, $endpt) and confess "zmq_bind failed; $!";
+
   $self->emit( 'bind_added', $alias, $endpt )
 }
 
@@ -179,9 +181,11 @@ sub _zpub_connect {
   my ($alias, $endpt) = @_[ARG0 .. $#_];
   confess "Expected an alias and endpoint"
     unless defined $alias and defined $endpt;
+
   my $zsock = $self->get_zmq_socket($alias)
     or confess "Cannot connect; no such alias $alias";
   zmq_connect($zsock, $endpt) and confess "zmq_connect failed; $!";
+
   $self->emit( 'connect_added', $alias, $endpt )
 }
 
@@ -199,6 +203,7 @@ sub _zpub_write {
     || confess "Cannot queue write; no such alias $alias";
   my $item = BufferItem->new(data  => $data, flags => $flags);
   $ref->buffer ? push(@{ $ref->buffer }, $item) : $ref->buffer([ $item ]);
+
   $self->call( 'zsock_write', $alias );
 }
 
@@ -376,7 +381,7 @@ sub _zmq_clear_all {
 
 =head1 NAME
 
-POEx::ZMQ3::Sockets - POE-enabled ZeroMQ sockets
+POEx::ZMQ3::Sockets - POE ZeroMQ Component
 
 =head1 SYNOPSIS
 
@@ -447,7 +452,8 @@ Your L<POE::Session> should register with the component to receive events:
 
 See L</POE API> for more on events emitted and accepted by this component.
 
-See L<MooX::Role::POE::Emitter> for more details on event emitters.
+See L<MooX::Role::POE::Emitter> for more details on event emitters; the
+documentation regarding event prefixes and session details lives there.
 
 =head2 Methods
 
@@ -475,7 +481,9 @@ The socket type may be either a constant from L<ZMQ::Constants> or a
 string type:
 
   ## Equivalent:
+
   $zmq->create( $alias, 'PUB' );
+
   use ZMQ::Constants 'ZMQ_PUB';
   $zmq->create( $alias, ZMQ_PUB );
 
@@ -548,6 +556,10 @@ messages.
 =head2 POE API
 
 =head3 Emitted Events
+
+=head4 zmqsock_ready
+
+Emitted when the instance's Emitter has been successfully started.
 
 =head4 zmqsock_bind_added
 
