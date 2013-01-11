@@ -1,21 +1,87 @@
 package POEx::ZMQ3::Role::Emitter;
 
 use Carp;
+use POE;
 use Moo::Role;
 
 use namespace::clean;
 
+use POEx::ZMQ3::Sockets;
 with 'MooX::Role::POE::Emitter';
+
 
 requires 'start', 'stop';
 
-around '_start_emitter' => sub {
+
+has zmq => (
+  lazy    => 1,
+  is      => 'ro',
+  default => sub { POEx::ZMQ3::Sockets->new },
+);
+
+
+has _zmq_binds => (
+  is => 'ro',
+  default => sub { +{} }
+);
+
+has _zmq_connects => (
+  is => 'ro',
+  default => sub { +{} },
+);
+
+sub add_bind {
+  my ($self, $alias, $endpoint) = @_;
+  confess "Expected an alias and endpoint"
+    unless defined $alias and defined $endpoint;
+  $self->zmq->bind( $alias, $endpoint );
+  $self->_zmq_binds->{$endpoint} = $alias
+}
+
+sub list_binds {
+  my ($self) = @_;
+  keys %{ $self->_zmq_binds }
+}
+
+sub add_connect {
+  my ($self, $alias, $endpoint) = @_;
+  confess "Expected an alias and endpoint"
+    unless defined $alias and defined $endpoint;
+  $self->zmq->connect( $alias, $endpoint );
+  $self->_zmq_connects->{$endpoint} = $alias
+}
+
+sub list_connects {
+  my ($self) = @_;
+  keys %{ $self->_zmq_connects }
+}
+
+after stop => sub {
+  my ($self) = @_;
+  delete $self->_zmq_binds->{$_} for keys %{ $self->_zmq_binds };
+  delete $self->_zmq_connects->{$_} for keys %{ $self->_zmq_connects };
+};
+
+around _start_emitter => sub {
   my ($orig, $self) = splice @_, 0, 2;
   $self->set_event_prefix( 'zeromq_' ) unless $self->has_event_prefix;
   $self->set_pluggable_type_prefixes(+{
     PROCESS => 'P_Zmq',
     NOTIFY  => 'Zmq',
   }) unless $self->has_pluggable_type_prefixes;
+
+  $self->set_object_states([
+    $self => [ qw/
+      emitter_started
+      zmqsock_registered
+      zmqsock_created
+      zmqsock_recv
+    / ],
+    (
+      $self->has_object_states ?
+        $self->object_states : ()
+    )
+  ]);
 
   $self->$orig(@_);
 };
