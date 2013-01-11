@@ -105,22 +105,31 @@ sub _stop_emitter { shift->_shutdown_emitter(@_) }
 
 =head1 NAME
 
-POEx::ZMQ3::Role::Emitter - Event emitter for POEx::ZMQ3
+POEx::ZMQ3::Role::Emitter - Event emitter for POEx::ZMQ3::Sockets
 
 =head1 SYNOPSIS
 
-FIXME
+Primarily used internally; the following public methods are provided to
+consumers:
+
+  $component->add_bind( $alias, $endpoint );
+  $component->add_connect( $alias, $endpoint );
+
+  my @bound = $component->list_binds;
+  my @connects = $component->list_connects;
+
+  $component->close_socket( $alias );
+
+  my $backend = $component->zmq;
 
 =head1 DESCRIPTION
 
 This is a small wrapper for L<MooX::Role::POE::Emitter>, providing some 
 default attributes and sane defaults for a L<POEx::ZMQ3::Sockets>-based Emitter:
 
-  ->event_prefix eq 'zeromq_'
-  ->pluggable_type_prefixes eq +{
-      PROCESS => 'P_Zmq',
-      NOTIFY  => 'Zmq',
-    }
+  The Emitter's event_prefix is 'zeromq_'
+  'PROCESS' type events (->process) have the Pluggable prefix 'P_Zmq'
+  'NOTIFY'  type events (->emit) have the Pluggable prefix 'Zmq'
 
 A L<POEx::ZMQ3::Sockets> instance is automatically created if not provided;
 see L</zmq>.

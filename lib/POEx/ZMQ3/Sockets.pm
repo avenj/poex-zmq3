@@ -104,7 +104,7 @@ sub stop {
 
 sub emitter_started {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  $self->emit( 'ready' );
+
 }
 
 sub emitter_stopped {
@@ -556,10 +556,6 @@ messages.
 =head2 POE API
 
 =head3 Emitted Events
-
-=head4 zmqsock_ready
-
-Emitted when the instance's Emitter has been successfully started.
 
 =head4 zmqsock_bind_added
 

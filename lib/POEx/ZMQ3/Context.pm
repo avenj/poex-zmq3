@@ -9,11 +9,12 @@ sub new {
   $class = ref $class || $class;
   no strict 'refs';
   my $this = \${$class.'::_ctxt_obj'};
-  defined $$this ? $$this : ( $$this = $class->_new )
+  defined $$this ? $$this : ( $$this = $class->_new(@_) )
 }
 
 sub _new {
-  zmq_ctx_new(1) or confess "zmq_ctx_new failed: $!"
+  my ($self, $threads) = @_;
+  zmq_ctx_new($threads // 1) or confess "zmq_ctx_new failed: $!"
 }
 
 sub term {
