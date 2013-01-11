@@ -47,14 +47,12 @@ sub zmqsock_recv {
   for ($alias) {
     when ('server') {
       ## Got a REQ on our REP server
-      diag "Got REQ";
       $got->{'REP got request'}++;
       $zmq->write( $alias, 'A reply' )
     }
 
     when ('client') {
       ## Got a REP on our REQ server
-      diag "Got REP";
       $got->{'REQ got reply'}++;
       if ($got->{'REQ got reply'} == $expected->{'REQ got reply'}) {
         $zmq->stop;

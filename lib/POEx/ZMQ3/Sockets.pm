@@ -212,6 +212,10 @@ sub _zsock_write {
     $data = zmq_msg_init_data($data)
   }
 
+  ## This socket may change state without necessarily
+  ## triggering read events. See zmq_getsockopt docs.
+  $self->yield( zsock_ready => undef, 0, $alias );
+
   my $rc;
   if ( $rc = zmq_msg_send( $data, $struct->zsock, ($flags ? $flags : ()) ) 
       && ($rc//0) == -1 ) {
@@ -224,10 +228,6 @@ sub _zsock_write {
     ## Successfully queued on socket.
     shift @{ $struct->buffer }
   }
-
-  ## This socket may change state without necessarily
-  ## triggering read events. See zmq_getsockopt docs.
-  $self->yield( zsock_ready => undef, 0, $alias )
 }
 
 
@@ -263,10 +263,12 @@ sub _zsock_ready {
   }
 
   my $msg = zmq_msg_init;
+  ## FIXME multipart messages, push all parts to array instead
   my $parts_count = 1;
   RECV: while (1) {
     if ( zmq_msg_recv($msg, $struct->zsock, ZMQ_DONTWAIT) == -1 ) {
       if ($! == POSIX::EAGAIN || $! == POSIX::EINTR) {
+        $self->yield(zsock_ready => undef, 0, $alias);
         return
       }
       confess "zmq_msg_recv failed; $!"
