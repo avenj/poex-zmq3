@@ -21,9 +21,13 @@ use MooX::Struct -rw,
     zsock
     handle
     fd
+    @buffer
+  / ],
+  BufferItem => [ qw/
+    data
+    flags
   / ],
 ;
-
 
 require POEx::ZMQ3::Context;
 has context => (
@@ -68,9 +72,10 @@ sub BUILD {
 
   $self->set_object_states([
     $self => {
-      zsock_ready => '_zsock_ready',
-      zsock_watch => '_zsock_watch',
+      zsock_ready   => '_zsock_ready',
+      zsock_watch   => '_zsock_watch',
       zsock_unwatch => '_zsock_unwatch',
+      zsock_write   => '_zsock_write',
       
       create      => '_zpub_create',
       bind        => '_zpub_bind',
@@ -132,7 +137,7 @@ sub set_zmq_sockopt {
 
 sub create {
   my $self = shift;
-  $self->yield( 'create', @_ )
+  $self->call( 'create', @_ )
 }
 
 sub _zpub_create {
@@ -188,23 +193,43 @@ sub _zpub_write {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, $data, $flags) = @_[ARG0 .. $#_];
 
-  my $zsock = $self->get_zmq_socket($alias)
-    or confess "Cannot write; no such alias $alias";
+  my $ref = $self->_zmq_sockets->{$alias}
+    || confess "Cannot queue write; no such alias $alias";
+  my $item = BufferItem->new(data  => $data, flags => $flags);
+  $ref->buffer ? push(@{ $ref->buffer }, $item) : $ref->buffer([ $item ]);
+  $self->call( 'zsock_write', $alias );
+}
 
-  $flags //= ZMQ_DONTWAIT;
+sub _zsock_write {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my $alias = $_[ARG0];
+  my $struct = $self->_zmq_sockets->{$alias}
+    || confess "Cannot execute write; no such alias $alias";
+  return unless $struct->buffer and @{ $struct->buffer };
+
+  my $next  = $struct->buffer->[0];
+  my $data  = $next->data;
+  my $flags = $next->flags;
+  unless (ref $data) {
+    $data = zmq_msg_init_data($data)
+  }
+
   my $rc;
-  if ( $rc = zmq_msg_send( $data, $zsock, ($flags ? $flags : ()) ) 
-     && ($rc//0) == -1 ) {
+  if ( $rc = zmq_msg_send( $data, $struct->zsock, ($flags ? $flags : ()) ) 
+      && ($rc//0) == -1 ) {
 
-    if ($rc == POSIX::EAGAIN) {
-      $self->yield( 'write', $alias, $data, $flags )
-    } else {
+    unless ($rc == POSIX::EAGAIN || $rc == POSIX::EINTR) {
       confess "zmq_msg_send failed; $!";
     }
-
+    $self->yield( 'zsock_write', $alias )
+  } else {
+    ## Successfully queued on socket.
+    shift @{ $struct->buffer }
   }
+
   1
 }
+
 
 sub close {
   my $self = shift;
@@ -221,7 +246,7 @@ sub _zpub_close {
 
 sub _zsock_ready {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  my $alias = $_[ARG2];
+  my (undef, $mode, $alias) = @_[ARG0 .. $#_];
   my $struct = $self->_zmq_sockets->{$alias};
   unless ($struct) {
     warn "Attempted to read socket '$alias' but no such socket struct";
@@ -229,14 +254,12 @@ sub _zsock_ready {
   }
 
   if ($struct->is_closing) {
-    warn "Socket '$alias' read-ready but closing"
+    warn "Socket '$alias' ready but closing"
       if $ENV{POEX_ZMQ_DEBUG};
     return
   }
 
-  while (my $msg = zmq_recvmsg( $struct->zsock, ZMQ_RCVMORE )) {
-    $self->emit( recv => $alias, $msg, zmq_msg_data($msg) )
-  }
+  warn "I'm in _ready ($mode) for $alias"; #DEBUG
 
   ## FIXME better err handling esp. zmq_msg_data ?
 #  my $msg = zmq_msg_init;
@@ -268,7 +291,14 @@ sub _zsock_ready {
 #    ## More parts to follow.
 #    $parts_count++;
 #  }
-#
+
+  while (my $msg = zmq_recvmsg( $struct->zsock, ZMQ_RCVMORE )) {
+    warn "I'm recving"; #DEBUG
+    $self->emit( recv => $alias, $msg, zmq_msg_data($msg) )
+  }
+
+  warn "I'm done with _ready";#DEBUG
+
   1  
 }
 
@@ -285,7 +315,7 @@ sub _zmq_create_sock {
   my $fd = zmq_getsockopt( $zsock, ZMQ_FD )
     or confess "zmq_getsockopt failed: $!";
 
-  open(my $fh, '<&=', $fd ) or confess "failed fdopen: $!";
+  open(my $fh, '+<&=', $fd ) or confess "failed fdopen: $!";
 
   $self->_zmq_sockets->{$alias} = ZMQSocket->new(
     zsock  => $zsock,
@@ -308,17 +338,19 @@ sub _zsock_watch {
     return
   }
 
-  $kernel->select_read( $struct->handle,
+  $kernel->select( $struct->handle,
     'zsock_ready',
+    undef, undef,
     $alias
   );
+
   1
 }
 
 sub _zsock_unwatch {
   my ($kernel, $self, $alias) = @_[KERNEL, OBJECT, ARG0];
   my $struct = delete $self->_zmq_sockets->{$alias};
-  $kernel->select_read( $struct->handle )
+  $kernel->select( $struct->handle )
 }
 
 sub _zmq_clear_sock {
