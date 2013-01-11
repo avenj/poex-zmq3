@@ -20,14 +20,22 @@ POE::Session->create(
       _start
       zmqsock_registered
       zmqsock_recv
+      timeout
     / ],
   ],
 );
 
+alarm 20;
 sub _start {
+  $_[KERNEL]->sig( ALRM => 'timeout' );
   my $zmq = $_[HEAP];
   $zmq->start;
   $poe_kernel->post( $zmq, 'subscribe', 'all' );
+}
+
+sub timeout {
+  $_[HEAP]->stop;
+  fail "Timed out"
 }
 
 sub zmqsock_registered {
