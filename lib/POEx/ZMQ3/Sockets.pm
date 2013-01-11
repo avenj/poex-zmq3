@@ -227,7 +227,9 @@ sub _zsock_write {
     shift @{ $struct->buffer }
   }
 
-  1
+  ## This socket may change state without necessarily
+  ## triggering read events. See zmq_getsockopt docs.
+  $self->yield( zsock_ready => undef, 0, $alias )
 }
 
 
@@ -253,51 +255,38 @@ sub _zsock_ready {
     return
   }
 
+  return unless 
+    zmq_getsockopt($struct->zsock, ZMQ_EVENTS) & ZMQ_POLLIN == ZMQ_POLLIN;
+
   if ($struct->is_closing) {
     warn "Socket '$alias' ready but closing"
       if $ENV{POEX_ZMQ_DEBUG};
     return
   }
 
-  warn "I'm in _ready ($mode) for $alias"; #DEBUG
+  my $msg = zmq_msg_init;
+  my $parts_count = 1;
+  RECV: while (1) {
+    if ( zmq_msg_recv($msg, $struct->zsock, ZMQ_DONTWAIT) == -1 ) {
+      if ($! == POSIX::EAGAIN || $! == POSIX::EINTR) {
+        return
+      }
+      confess "zmq_msg_recv failed; $!"
+    }
 
-  ## FIXME better err handling esp. zmq_msg_data ?
-#  my $msg = zmq_msg_init;
-#  warn 'DEBUG init msg';
-#  ## FIXME
-#  ##  use ZMQ_DONTWAIT ?
-#  my $parts_count = 1;
-#  RECV: while (1) {
-#    if ( zmq_msg_recv($msg, $struct->zsock, ZMQ_DONTWAIT) == -1 ) {
-#      return if $! == POSIX::EAGAIN;
-#      confess "zmq_msg_recv failed; $!"
-#      return
-#    }
-#
-#    warn 'DEBUG recv msg';
-#
-#    unless ( zmq_getsockopt($struct->zsock, ZMQ_RCVMORE) ) {
-#      warn 'DEBUG no rcvmore';
-#      ## No more message parts.
-#      $self->emit( recv => 
-#        $alias, 
-#        $msg, 
-#        zmq_msg_data($msg), 
-#        $parts_count 
-#      );
-#      last RECV
-#    }
-#    warn 'DEBUG more to recv';
-#    ## More parts to follow.
-#    $parts_count++;
-#  }
-
-  while (my $msg = zmq_recvmsg( $struct->zsock, ZMQ_RCVMORE )) {
-    warn "I'm recving"; #DEBUG
-    $self->emit( recv => $alias, $msg, zmq_msg_data($msg) )
+    unless ( zmq_getsockopt($struct->zsock, ZMQ_RCVMORE) ) {
+      ## No more message parts.
+      $self->emit( recv => 
+        $alias, 
+        $msg, 
+        zmq_msg_data($msg), 
+        $parts_count 
+      );
+      last RECV
+    }
+    ## More parts to follow.
+    $parts_count++;
   }
-
-  warn "I'm done with _ready";#DEBUG
 
   1  
 }
