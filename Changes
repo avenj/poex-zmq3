@@ -1,5 +1,13 @@
 ## Changes for POEx::ZMQ3
 
+  * 0.00_05  (10 Jan 2013)
+    FD may be ready-to-read immediately after a write, but
+    we may not catch an event.
+    This release fixes req-rep pairs as seen in examples/
+
+    However, the backend interfaces are likely to change
+    (see scratchpad branch in git).
+
   * 0.00_04  (5 Jan 2013)
     Be a bit more "safe" in how we treat REP / REQ pairs.
 
