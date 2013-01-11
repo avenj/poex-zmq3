@@ -46,23 +46,21 @@ sub zmqsock_registered {
 
 sub publish_things {
   my ($kern, $zmq) = @_[KERNEL, HEAP];
-  diag "Publishing things";
   $zmq->write( 'server', 'A published message' );
-  $kern->delay( publish_things => 1 )
+  $kern->delay( 'publish_things' => 0.01 )
 }
 
 sub zmqsock_recv {
   my ($kern, $zmq) = @_[KERNEL, HEAP];
   my ($alias, $zmsg, $data) = @_[ARG0 .. $#_];
 
-  diag "Got recv $data";
-  
   fail "How did we recv on our PUB socket?"
     if $alias eq 'server';
 
   $got->{'SUB got msg'}++;
 
   if ($got->{'SUB got msg'} == $expected->{'SUB got msg'}) {
+    $kern->delay( 'publish_things' );
     $zmq->stop;
   }
 }

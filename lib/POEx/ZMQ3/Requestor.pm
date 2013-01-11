@@ -1,46 +1,67 @@
 package POEx::ZMQ3::Requestor;
 
+use Carp;
 use Moo;
+use POE;
 
-
-use ZMQ::Constants 'ZMQ_REQ';
+## Keep namespace::clean above ZALIAS so subclasses can use it.
+use namespace::clean;
 
 sub ZALIAS () { 'req' }
 
 with 'POEx::ZMQ3::Role::Emitter';
-with 'POEx::ZMQ3::Role::Endpoints';
+
+has targets => (
+  is => 'ro',
+  default => sub { [] },
+);
 
 sub start {
-  my ($self, $target) = @_;
+  my ($self, @endpoints) = @_;
+
+  push @{ $self->targets }, @endpoints;
+
+  $self->zmq->start;
+  $self->zmq->create( ZALIAS, 'REQ' );
+
   $self->_start_emitter;
-
-  $self->create_zmq_socket( ZALIAS, ZMQ_REQ );
-  $self->add_target_endpoint( ZALIAS, $target );
-
-  $self
 }
 
-after add_target_endpoint => sub {
-  my ($self, $alias, $target) = @_;
-  $self->emit_now( 'connected_to', $target );
+sub emitter_started {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  $kernel->call( $self->zmq, subscribe => 'all' );
+
+  while (my $endpoint = shift @{ $self->targets }) {
+    $self->add_connect( ZALIAS, $endpoint )
+  }
+  1
+}
+
+after add_connect => sub {
+  my ($self, $alias, $endpoint) = @_;
+  $self->emit( 'connected_to', $endpoint )
 };
 
 sub stop {
   my ($self) = @_;
-  $self->emit_now( 'stopped' );
-  $self->clear_zmq_socket( ZALIAS );
-  $self->_stop_emitter;
+  $self->zmq->stop;
+  $self->_shutdown_emitter;
 }
 
 sub request {
   my ($self, $data) = @_;
-  $self->write_zmq_socket( ZALIAS, $data );
+  $self->zmq->write( ZALIAS, $data )
 }
 
-sub zmq_message_ready {
-  my ($self, $alias, $zmsg, $data) = @_;
-  $self->emit_now( 'got_reply', $data )
+sub zmqsock_created {}
+sub zmqsock_registered {}
+
+sub zmqsock_recv {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my ($alias, undef, $data) = @_[ARG0 .. $#_];
+  $self->emit( 'got_reply', $data );
 }
+
 
 1;
 

@@ -18,9 +18,9 @@ use MooX::Role::Pluggable::Constants;
 use MooX::Struct -rw,
   ZMQSocket => [ qw/
     +is_closing
-    zsock
-    handle
-    fd
+    zsock!
+    handle!
+    fd!
     @buffer
   / ],
   BufferItem => [ qw/
@@ -162,13 +162,10 @@ sub _zpub_bind {
   my ($alias, $endpt) = @_[ARG0 .. $#_];
   confess "Expected an alias and endpoint"
     unless defined $alias and defined $endpt;
-
   my $zsock = $self->get_zmq_socket($alias)
     or confess "Cannot bind; no such alias $alias";
-  if ( zmq_bind($zsock, $endpt) ) {
-    confess "zmq_bind failed; $!"
-  }
-  1
+  zmq_bind($zsock, $endpt) and confess "zmq_bind failed; $!";
+  $self->emit( 'bind_added', $alias, $endpt )
 }
 
 
@@ -185,7 +182,7 @@ sub _zpub_connect {
   my $zsock = $self->get_zmq_socket($alias)
     or confess "Cannot connect; no such alias $alias";
   zmq_connect($zsock, $endpt) and confess "zmq_connect failed; $!";
-  1
+  $self->emit( 'connect_added', $alias, $endpt )
 }
 
 
@@ -326,6 +323,8 @@ sub _zmq_create_sock {
   ## FIXME adjust IPV4ONLY if we have ->use_ipv6 or so?
   $self->set_zmq_sockopt($alias, ZMQ_LINGER, 0);
 
+  $self->emit( 'created', $alias, $type );
+
   $self->call( zsock_watch => $alias )
 }
 
@@ -370,3 +369,26 @@ sub _zmq_clear_all {
 }
 
 1;
+
+
+=pod
+
+=head1 NAME
+
+POEx::ZMQ3::Sockets - POE-enabled ZeroMQ sockets
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 SEE ALSO
+
+L<ZMQ::LibZMQ3>
+
+L<http://www.zeromq.org>
+
+=head1 AUTHOR
+
+Jon Portnoy <avenj@cobaltirc.org>
+
+=cut

@@ -2,47 +2,58 @@ package POEx::ZMQ3::Subscriber;
 
 use Carp;
 use Moo;
+use POE;
 
-use ZMQ::Constants
-  'ZMQ_SUB',
-  'ZMQ_SUBSCRIBE',
-;
+use namespace::clean;
+
+has targets => (
+  is => 'rw',
+  default => sub { [] },
+);
 
 sub ZALIAS () { 'sub' }
 
 with 'POEx::ZMQ3::Role::Emitter';
-with 'POEx::ZMQ3::Role::Endpoints';
 
 
 sub start {
   my ($self, @targets) = @_;
+  push @{ $self->targets }, @targets;
+  $self->zmq->start;
+  $self->zmq->create( ZALIAS, 'SUB' );
+
   $self->_start_emitter;
+}
 
-  $self->create_zmq_socket( ZALIAS, ZMQ_SUB );
-  for my $target (@targets) {
-    $self->add_target_endpoint( ZALIAS, $target );
-  }
+sub emitter_started {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
 
-  ## Subscribe to all by default:
-  $self->set_zmq_sockopt( ZALIAS, ZMQ_SUBSCRIBE, '' );
+  $poe_kernel->call( $self->zmq->session_id, subscribe => 'all' );
+
+  $self->zmq->set_zmq_subscribe( ZALIAS );
+  $self->add_connect( ZALIAS, $_ ) for @{ $self->targets };
+  $self->targets([]);
 
   $self
 }
 
-after add_target_endpoint => sub {
+after add_connect => sub {
   my ($self, $alias, $target) = @_;
   $self->emit( 'subscribed_to', $target )
 };
 
 sub stop {
   my ($self) = @_;
-  $self->emit( 'stopped' );
-  $self->clear_zmq_socket( ZALIAS );
+  $self->zmq->stop;
   $self->_stop_emitter;
 }
 
-sub zmq_message_ready {
-  my ($self, $alias, $zmsg, $data) = @_;
+sub zmqsock_registered {}
+sub zmqsock_created {}
+
+sub zmqsock_recv {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my ($alias, undef, $data) = @_[ARG0 .. $#_];
   $self->emit( 'recv', $data )
 }
 
