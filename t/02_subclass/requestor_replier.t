@@ -75,7 +75,7 @@ POE::Session->create(
 );
 
 $poe_kernel->run;
-
+POEx::ZMQ3::Context->term;
 is_deeply $got, $expected, 'request/reply interaction ok';
 
 done_testing;

@@ -17,5 +17,6 @@ ok( POEx::ZMQ3::Context->new == $ctxt, 'is a singleton' );
 
 POEx::ZMQ3::Context->reset;
 ok( POEx::ZMQ3::Context->new != $ctxt, 'reset context' );
+POEx::ZMQ3::Context->term;
 
 done_testing;

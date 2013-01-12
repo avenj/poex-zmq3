@@ -72,5 +72,6 @@ sub zmqsock_recv {
 
 
 $poe_kernel->run;
+POEx::ZMQ3::Context->term;
 is_deeply $got, $expected, 'component looks ok';
 done_testing;
