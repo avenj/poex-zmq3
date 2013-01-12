@@ -53,7 +53,7 @@ sub zmqsock_created {}
 
 sub zmqsock_recv {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  my ($alias, undef, $data) = @_[ARG0 .. $#_];
+  my ($alias, $data) = @_[ARG0, ARG1];
   $self->emit( 'received', $data )
 }
 

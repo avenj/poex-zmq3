@@ -288,10 +288,9 @@ sub _zsock_ready {
     return
   }
 
-  my $msg = zmq_msg_init;
-  ## FIXME multipart messages, push all parts to array instead
-  my $parts_count = 1;
+  my @parts;
   RECV: while (1) {
+    my $msg = zmq_msg_init;
     if ( zmq_msg_recv($msg, $struct->zsock, ZMQ_DONTWAIT) == -1 ) {
       if ($! == POSIX::EAGAIN || $! == POSIX::EINTR) {
         $self->yield(zsock_ready => undef, 0, $alias);
@@ -300,18 +299,28 @@ sub _zsock_ready {
       confess "zmq_msg_recv failed; $!"
     }
 
+    my $data = zmq_msg_data($msg);
+
     unless ( zmq_getsockopt($struct->zsock, ZMQ_RCVMORE) ) {
       ## No more message parts.
-      $self->emit( recv => 
-        $alias, 
-        $msg, 
-        zmq_msg_data($msg), 
-        $parts_count 
-      );
+      if (@parts) {
+        $self->emit( multipart_recv =>
+          $alias,
+          [ @parts ]
+        );
+      } else {
+        ## Single-part message.
+        $self->emit( recv =>
+          $alias,
+          $data
+        );
+      }
+
       last RECV
     }
+
     ## More parts to follow.
-    $parts_count++;
+    push @parts, $data;
   }
 
   1  
@@ -436,7 +445,7 @@ POEx::ZMQ3::Sockets - POE ZeroMQ Component
 
   sub zmqsock_recv {
     my ($kern, $heap) = @_[KERNEL, HEAP];
-    my ($alias, $zmsg, $data) = @_[ARG0 .. $#_];
+    my ($alias, $data) = @_[ARG0 .. $#_];
 
     if ($data eq 'PONG') {
       ## Got a PONG. Send another PING:
@@ -591,9 +600,7 @@ Emitted when some data has been received on a socket.
 
 $_[ARG0] is the socket's alias.
 
-$_[ARG1] is the actual L<ZMQ::LibZMQ3> message object.
-
-$_[ARG2] is the raw message data extracted via B<zmq_msg_data>.
+$_[ARG1] is the raw message data extracted via B<zmq_msg_data>.
 
 =head4 zmqsock_created
 

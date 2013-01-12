@@ -61,7 +61,7 @@ sub publish_things {
 
 sub zmqsock_recv {
   my ($kern, $zmq) = @_[KERNEL, HEAP];
-  my ($alias, $zmsg, $data) = @_[ARG0 .. $#_];
+  my ($alias, $data) = @_[ARG0 .. $#_];
 
   fail "How did we recv on our PUB socket?"
     if $alias eq 'server';
