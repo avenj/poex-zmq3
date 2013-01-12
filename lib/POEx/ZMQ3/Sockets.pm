@@ -130,7 +130,7 @@ sub emitter_stopped {
 
 sub get_zmq_socket {
   my ($self, $alias) = @_;
-  confess "Expected an alias" unless defined $alias;
+  croak "Expected an alias" unless defined $alias;
   my $struct = $self->_zmq_sockets->{$alias} || return;
   $struct->zsock
 }
@@ -138,14 +138,14 @@ sub get_zmq_socket {
 ## FIXME POE interfaces to sockopt setters
 sub set_zmq_sockopt {
   my ($self, $alias) = splice @_, 0, 2;
-  confess "Expected an alias and params to feed zmq_setsockopt"
+  croak "Expected an alias and params to feed zmq_setsockopt"
     unless @_;
 
   my $zsock = $self->get_zmq_socket($alias)
-    || confess "Cannot set_zmq_sockopt; no such alias $alias";
+    || croak "Cannot set_zmq_sockopt; no such alias $alias";
   
   if ( zmq_setsockopt($zsock, @_) == -1 ) {
-    confess "zmq_setsockopt failed; $!"
+    croak "zmq_setsockopt failed; $!"
   }
 
   $self
@@ -354,18 +354,18 @@ sub _zsock_ready {
 
 sub _zmq_create_sock {
   my ($self, $alias, $type) = @_; 
-  confess "Expected an alias and sock type"
+  croak "Expected an alias and sock type"
     unless defined $alias and defined $type;
 
   $type = $stringy_types{$type} if exists $stringy_types{$type};
 
   my $zsock = zmq_socket( $self->context, $type )
-    or confess "zmq_socket failed: $!";
+    or croak "zmq_socket failed: $!";
 
   my $fd = zmq_getsockopt( $zsock, ZMQ_FD )
-    or confess "zmq_getsockopt failed: $!";
+    or croak "zmq_getsockopt failed: $!";
 
-  open(my $fh, '<&=', $fd ) or confess "failed fdopen: $!";
+  open(my $fh, '<&=', $fd ) or croak "failed fdopen: $!";
 
   $self->_zmq_sockets->{$alias} = ZMQSocket->new(
     zsock  => $zsock,
@@ -413,7 +413,7 @@ sub _zmq_clear_sock {
   my ($self, $alias) = @_;
 
   my $zsock = $self->get_zmq_socket($alias)
-    or confess "Cannot _zmq_clear_sock; no such alias $alias";
+    or croak "Cannot _zmq_clear_sock; no such alias $alias";
 
   zmq_close($zsock);
   $self->_zmq_sockets->{$alias}->is_closing(1);

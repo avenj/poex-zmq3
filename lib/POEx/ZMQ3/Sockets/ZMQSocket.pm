@@ -55,9 +55,8 @@ has buffer => (
   sub flags { $_[0]->[FLAGS] }
 }
 
-sub new_buffer_item {
-  my $self = shift;
-  POEx::ZMQ3::Sockets::ZMQSocket::_BUF->new(@_)
+sub new_buffer_item { 
+  POEx::ZMQ3::Sockets::ZMQSocket::_BUF->new( @_[1 .. $#_] )
 }
 
 
