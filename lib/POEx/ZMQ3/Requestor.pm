@@ -4,10 +4,7 @@ use Carp;
 use Moo;
 use POE;
 
-## Keep namespace::clean above ZALIAS so subclasses can use it.
 use namespace::clean;
-
-sub ZALIAS () { 'req' }
 
 with 'POEx::ZMQ3::Role::Emitter';
 
@@ -32,7 +29,7 @@ sub start {
   push @{ $self->targets }, @endpoints;
 
   $self->zmq->start;
-  $self->zmq->create( ZALIAS, 'REQ' );
+  $self->zmq->create( $self->alias, 'REQ' );
 
   $self->_start_emitter;
 }
@@ -45,7 +42,7 @@ sub emitter_started {
   / );
 
   while (my $endpoint = shift @{ $self->targets }) {
-    $self->add_connect( ZALIAS, $endpoint )
+    $self->add_connect( $self->alias, $endpoint )
   }
 }
 
@@ -62,7 +59,7 @@ sub stop {
 
 sub request {
   my ($self, $data) = @_;
-  $self->zmq->write( ZALIAS, $data )
+  $self->zmq->write( $self->alias, $data )
 }
 
 sub zmqsock_recv {

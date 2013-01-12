@@ -6,8 +6,6 @@ use POE;
 
 use namespace::clean;
 
-sub ZALIAS () { 'rep' }
-
 with 'POEx::ZMQ3::Role::Emitter';
 
 has listen => (
@@ -30,7 +28,7 @@ sub start {
 
   push @{ $self->listen }, @endpoints;
   $self->zmq->start;
-  $self->zmq->create( ZALIAS, 'REP' );
+  $self->zmq->create( $self->alias, 'REP' );
 
   $self->_start_emitter;
 }
@@ -41,7 +39,7 @@ sub emitter_started {
   $poe_kernel->call( $self->zmq->session_id, subscribe => 'recv' );
 
   while (my $target = shift @{ $self->listen }) {
-    $self->add_bind( ZALIAS, $target )
+    $self->add_bind( $self->alias, $target )
   }
 }
 
@@ -58,7 +56,7 @@ sub stop {
 
 sub reply {
   my ($self, $data) = @_;
-  $self->zmq->write( ZALIAS, $data )
+  $self->zmq->write( $self->alias, $data )
 }
 
 sub zmqsock_recv {

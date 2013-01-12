@@ -14,8 +14,6 @@ has targets => (
   default => sub { [] },
 );
 
-sub ZALIAS () { 'sub' }
-
 with 'POEx::ZMQ3::Role::Emitter';
 
 sub build_defined_states {
@@ -33,7 +31,7 @@ sub start {
   my ($self, @targets) = @_;
   push @{ $self->targets }, @targets;
   $self->zmq->start;
-  $self->zmq->create( ZALIAS, 'SUB' );
+  $self->zmq->create( $self->alias, 'SUB' );
 
   $self->_start_emitter;
 }
@@ -42,8 +40,8 @@ sub emitter_started {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
 
   $kernel->call( $self->zmq => subscribe => 'all' );
-  $self->zmq->set_zmq_subscribe( ZALIAS );
-  $self->add_connect( ZALIAS, $_ ) for @{ $self->targets };
+  $self->zmq->set_zmq_subscribe( $self->alias );
+  $self->add_connect( $self->alias, $_ ) for @{ $self->targets };
   $self->targets([]);
 
   $self

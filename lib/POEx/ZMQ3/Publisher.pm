@@ -6,8 +6,6 @@ use POE;
 
 use namespace::clean;
 
-sub ZALIAS () { 'pub' }
-
 with 'POEx::ZMQ3::Role::Emitter';
 
 sub build_defined_states {[]}
@@ -15,9 +13,9 @@ sub build_defined_states {[]}
 sub start {
   my ($self, @endpoints) = @_;
   $self->zmq->start;
-  $self->zmq->create( ZALIAS, 'PUB' );
+  $self->zmq->create( $self->alias, 'PUB' );
   $self->_start_emitter;
-  $self->add_bind( ZALIAS, $_ ) for @endpoints;
+  $self->add_bind( $self->alias, $_ ) for @endpoints;
   $self
 }
 
@@ -34,12 +32,12 @@ sub stop {
 
 sub publish {
   my ($self, @data) = @_;
-  $self->zmq->write( ZALIAS, $_ ) for @data;
+  $self->zmq->write( $self->alias, $_ ) for @data;
 }
 
 sub publish_multipart {
   my ($self, @data) = @_;
-  $self->zmq->write_multipart( ZALIAS, @data );
+  $self->zmq->write_multipart( $self->alias, @data );
 }
 
 1;
