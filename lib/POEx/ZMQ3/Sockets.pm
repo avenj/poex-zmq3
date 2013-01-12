@@ -400,7 +400,9 @@ sub _zsock_watch {
 sub _zsock_unwatch {
   my ($kernel, $self, $alias) = @_[KERNEL, OBJECT, ARG0];
   my $struct = delete $self->_zmq_sockets->{$alias};
-  $kernel->select( $struct->handle )
+  $kernel->select( $struct->handle );
+  ## Keeping us alive just a hair longer helps with flaky 'bad FD' errs:
+  $self->yield(sub { $struct })
 }
 
 sub _zmq_clear_sock {
