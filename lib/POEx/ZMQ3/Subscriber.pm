@@ -69,7 +69,7 @@ sub zmqsock_recv {
 sub zmqsock_multipart_recv {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, $parts) = @_[ARG0, ARG1];
-  ## FIXME
+  $self->emit( 'received', @$parts )
 }
 
 1;
@@ -153,9 +153,18 @@ Emitted when we are initialized; $_[ARG0] is the target publisher's address.
 
 =head3 zeromq_received
 
-Emitted when we receive data from the publisher we are subscribed to; $_[ARG0]
-is the (raw) data received. (No special handling of multipart messages
-currently takes place.)
+Emitted when we receive data from the publisher we are subscribed to
+
+If this is a single-part message, $_[ARG0] is the (raw) data received. 
+
+If this is a multi-part message, slurp the argument array to receive all
+parts:
+
+  sub zeromq_received {
+    my @parts    = @_[ARG0 .. $#_];
+    my $envelope = shift @parts;
+    . . .
+  }
 
 =head1 SEE ALSO
 
