@@ -3,6 +3,7 @@ Changes
 examples/ping_client.pl
 examples/pong_server.pl
 examples/publish_time.pl
+examples/ssh_tunnel.sh
 examples/subscribe_time.pl
 lib/POEx/ZMQ3.pm
 lib/POEx/ZMQ3/Context.pm
