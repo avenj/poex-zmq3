@@ -45,11 +45,10 @@ has buffer => (
 
   sub new {
     my ($class, %params) = @_;
-    my $self = [
+    bless [
       ( $params{data} // confess 'Expected "data" parameter' ),
       $params{flags}
-    ];
-    bless $self, $class
+    ], $class
   }
 
   sub data  { $_[0]->[DATA]  }
