@@ -40,7 +40,6 @@ use MooX::Role::Pluggable::Constants;
 require POEx::ZMQ3::Sockets::ZMQSocket;
 sub ZMQSocket () { 'POEx::ZMQ3::Sockets::ZMQSocket' }
 
-
 require POEx::ZMQ3::Context;
 has context => (
   is      => 'ro',
@@ -112,7 +111,9 @@ sub start {
 sub stop {
   my ($self) = @_;
   $self->_zmq_clear_all;
-  $self->yield( 'shutdown_emitter' );
+  ## Yes, I'm serious.
+  ## (Gives zmq a little extra cleanup time after zmq_close.)
+  $self->yield(sub { $_[OBJECT]->yield('shutdown_emitter') });
 }
 
 sub emitter_started {
@@ -226,6 +227,7 @@ sub _zpub_write_multi {
     );
     push @{ $ref->buffer }, $item;
   }
+  ## These are call()ed, as we likely were already reached via yield/post:
   $self->call( 'zsock_write', $alias )
 }
 

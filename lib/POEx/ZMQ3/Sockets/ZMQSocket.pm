@@ -36,17 +36,32 @@ has buffer => (
 {
   package
     POEx::ZMQ3::Sockets::ZMQSocket::_BUF;
-  use Moo;
 
-  has data => (
-    is       => 'rw',
-    required => 1,
-  );
+  use Carp 'confess';
+  use strictures 1;
 
-  has flags => (
-    is       => 'rw',
-    default  => sub { undef },
-  );
+  sub DATA  () { 0 }
+  sub FLAGS () { 1 }
+
+  sub new {
+    my ($class, %params) = @_;
+    confess "Expected 'data' parameter" unless defined $params{data};
+    my $self = [
+      $params{data},
+      $params{flags}
+    ];
+    bless $self, $class
+  }
+
+  sub data {
+    my ($self) = @_;
+    $self->[DATA]
+  }
+
+  sub flags {
+    my ($self) = @_;
+    $self->[FLAGS]
+  }
 }
 
 sub new_buffer_item {
