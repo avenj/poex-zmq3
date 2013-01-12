@@ -1,5 +1,12 @@
 ## Changes for POEx::ZMQ3
 
+  * 0.03     (12 Jan 2013)
+    Publisher; Add ->publish_multipart()
+
+    Fix dependency on MooX::Role::POE::Emitter.
+    Need at least 0.11.
+
+    Small optimizations and cleanups.
 
   * 0.02     (11 Jan 2013)
     INCOMPATIBLE CHANGES:
