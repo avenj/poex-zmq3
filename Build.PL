@@ -86,9 +86,9 @@ my $build = $class->new(
     'strictures'                => 1,
     'namespace::clean'          => '0.23',
 
-    'Moo'                       => '1.000003',
+    'Moo'                       => '1.000007',
 #    'MooX::Struct'              => '0.010',
-    'MooX::Role::POE::Emitter'  => '0.10',
+    'MooX::Role::POE::Emitter'  => '0.11',
 
     'POE'                       => '1.3',
 
