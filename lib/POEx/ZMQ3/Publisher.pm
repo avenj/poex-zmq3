@@ -38,7 +38,7 @@ sub publish {
 
 sub publish_multipart {
   my ($self, @data) = @_;
-  ## FIXME
+  $self->zmq->write_multipart( ZALIAS, @data );
 }
 
 sub emitter_started {}
@@ -66,13 +66,13 @@ POEx::ZMQ3::Publisher - A PUB-type ZeroMQ socket
 
       _start => sub {
         ## Bind our Publisher to some endpoints:
-        $zsub->start(
+        $zpub->start(
           'tcp://127.0.0.1:5665',
           'tcp://127.0.0.1:1234',
         );
 
         ## Our session wants all emitted events:
-        $_[KERNEL]->post( $zsub->session_id,
+        $_[KERNEL]->post( $zpub->session_id,
           'subscribe',
           'all'
         );
@@ -87,7 +87,7 @@ POEx::ZMQ3::Publisher - A PUB-type ZeroMQ socket
       },
 
       push_messages => sub {
-        $zsub->publish(
+        $zpub->publish(
           'This is data \o/'
         );
 
@@ -106,23 +106,30 @@ A lightweight ZeroMQ publisher-type socket using L<POEx::ZMQ3::Role::Emitter>.
 
 =head3 start
 
-  $zsub->start( @publish_on );
+  $zpub->start( @publish_on );
 
 Start the Publisher and bind some endpoint(s).
 
 =head3 stop
 
-  $zsub->stop;
+  $zpub->stop;
 
 Stop the Publisher, closing out the socket and stopping the event emitter.
 
 =head3 publish
 
-  $zsub->publish( @data );
+  $zpub->publish( @data );
 
-Publish some item(s) to the ZeroMQ socket.
+Publish some item(s) to the ZeroMQ socket as individual single-part messages.
 
 This base class does no special serialization on its own.
+
+=head3 publish_multipart
+
+ $zpub->publish_multipart( @data );
+
+Publish multi-part data. For PUB-type sockets, this is frequently used to
+create message envelopes a SUB-type socket can subscribe to.
 
 =head2 Events
 

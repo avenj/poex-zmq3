@@ -13,9 +13,12 @@ use ZMQ::Constants
   qw/
     ZMQ_REQ ZMQ_REP
     ZMQ_DEALER ZMQ_ROUTER
+
     ZMQ_PUB ZMQ_SUB
     ZMQ_XPUB ZMQ_XSUB
+
     ZMQ_PUSH ZMQ_PULL
+
     ZMQ_PAIR
  /,
  ## Socket control.
@@ -327,7 +330,9 @@ sub _zsock_ready {
     my $data = zmq_msg_data($msg);
 
     unless ( zmq_getsockopt($struct->zsock, ZMQ_RCVMORE) ) {
+      ## No parts remaining on socket.
       if (@parts) {
+        ## Multi-part message accumulated.
         $self->emit( multipart_recv => 
           $alias, [ @parts, $data ] 
         )
@@ -339,8 +344,7 @@ sub _zsock_ready {
       }
       last RECV
     }
-
-    ## More parts to follow.
+    ## Multi-part with more parts to follow.
     push @parts, $data;
   }
 
