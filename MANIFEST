@@ -18,9 +18,10 @@ MANIFEST			This list of files
 META.json
 META.yml
 README
-t/00_utils/01_context.t
-t/01_component/01_repreq.t
-t/01_component/02_pubsub.t
-t/02_subclass/01_requestor_replier.t
-t/02_subclass/02_publisher_subscriber.t
+t/00_utils/context.t
+t/01_component/pub_sub.t
+t/01_component/pub_sub_multi.t
+t/01_component/rep_req.t
+t/02_subclass/publisher_subscriber.t
+t/02_subclass/requestor_replier.t
 TODO

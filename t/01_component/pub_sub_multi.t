@@ -10,7 +10,9 @@ use_ok 'POEx::ZMQ3::Sockets';
 
 my $got = {};
 my $expected = {
-  'SUB got msg' => 20,
+  'SUB got msg'             => 20,
+  'SUB got correct header'  => 20,
+  'SUB got correct content' => 20,
 };
 
 POE::Session->create(
@@ -19,7 +21,7 @@ POE::Session->create(
     main => [ qw/
       _start
       zmqsock_registered
-      zmqsock_recv
+      zmqsock_multipart_recv
       publish_things
       timeout
     / ],
@@ -48,26 +50,42 @@ sub zmqsock_registered {
 
   $zmq->bind( 'server', $addr );
   $zmq->connect( 'client', $addr );
-  $zmq->set_zmq_subscribe( 'client' );
+  $zmq->set_zmq_subscribe( 'client', 'A' );
 
   $kern->yield( 'publish_things' );
 }
 
 sub publish_things {
   my ($kern, $zmq) = @_[KERNEL, HEAP];
-  $zmq->write( 'server', 'A published message' );
+  $zmq->write_multipart( server =>
+    'A',
+    'This is message A'
+  );
+  $zmq->write_multipart( server =>
+    'B',
+    'This is message B'
+  );
   $kern->delay( 'publish_things' => 0.01 )
 }
 
-sub zmqsock_recv {
+sub zmqsock_multipart_recv {
   my ($kern, $zmq) = @_[KERNEL, HEAP];
-  my ($alias, $data) = @_[ARG0 .. $#_];
+  my ($alias, $parts) = @_[ARG0 .. $#_];
 
   fail "How did we recv on our PUB socket?"
     if $alias eq 'server';
 
-  $got->{'SUB got msg'}++;
+  my ($envel, $content) = @$parts;
 
+  fail "Should not have received from unsubscribed header B"
+    if $envel eq 'B';
+
+  $got->{'SUB got correct header'}++ 
+    if $envel eq 'A';
+  $got->{'SUB got correct content'}++
+    if $content eq 'This is message A';
+
+  $got->{'SUB got msg'}++;
   if ($got->{'SUB got msg'} == $expected->{'SUB got msg'}) {
     $kern->delay( 'publish_things' );
     $zmq->stop;

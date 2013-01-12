@@ -90,10 +90,11 @@ sub BUILD {
       zsock_write   => '_zsock_write',
       
       create      => '_zpub_create',
+      close       => '_zpub_close',
       bind        => '_zpub_bind',
       connect     => '_zpub_connect',
       write       => '_zpub_write',
-      close       => '_zpub_close',
+      write_multipart => '_zpub_write_multi',
     },
     $self => [
       'emitter_started',
@@ -207,6 +208,27 @@ sub write {
   $self->yield( 'write', @_ )
 }
 
+sub write_multipart {
+  my $self = shift;
+  $self->yield( 'write_multipart', @_ )
+}
+
+sub _zpub_write_multi {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my ($alias, @parts) = @_[ARG0 .. $#_];
+
+  my $ref = $self->_zmq_sockets->{$alias}
+    || confess "Cannot queue write; no such alias $alias";
+  while (my $data = shift @parts) {
+    my $item = ZMQSocket->new_buffer_item(
+      data => $data, 
+      (scalar(@parts) ? (flags => ZMQ_SNDMORE) : () ),
+    );
+    push @{ $ref->buffer }, $item;
+  }
+  $self->call( 'zsock_write', $alias )
+}
+
 sub _zpub_write {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, $data, $flags) = @_[ARG0 .. $#_];
@@ -216,7 +238,7 @@ sub _zpub_write {
   my $item = ZMQSocket->new_buffer_item(data => $data, flags => $flags);
   push @{ $ref->buffer }, $item;
 
-  $self->call( 'zsock_write', $alias );
+  $self->call( 'zsock_write', $alias )
 }
 
 sub _zsock_write {
@@ -276,8 +298,9 @@ sub _zsock_ready {
     return
   }
 
-  return unless 
-    zmq_getsockopt($struct->zsock, ZMQ_EVENTS) & ZMQ_POLLIN == ZMQ_POLLIN;
+  my $zev = zmq_getsockopt($struct->zsock, ZMQ_EVENTS);
+  return unless defined $zev
+    and $zev & ZMQ_POLLIN == ZMQ_POLLIN;
   ## Socket can change state after a write/read without notifying us.
   ## Check again when we're finished.
   $self->yield( zsock_ready => undef, 0, $alias );
@@ -288,10 +311,9 @@ sub _zsock_ready {
     return
   }
 
-  my $msg = zmq_msg_init;
-  ## FIXME multipart messages, push all parts to array instead
-  my $parts_count = 1;
+  my @parts;
   RECV: while (1) {
+    my $msg = zmq_msg_init;
     if ( zmq_msg_recv($msg, $struct->zsock, ZMQ_DONTWAIT) == -1 ) {
       if ($! == POSIX::EAGAIN || $! == POSIX::EINTR) {
         $self->yield(zsock_ready => undef, 0, $alias);
@@ -300,18 +322,24 @@ sub _zsock_ready {
       confess "zmq_msg_recv failed; $!"
     }
 
+    my $data = zmq_msg_data($msg);
+
     unless ( zmq_getsockopt($struct->zsock, ZMQ_RCVMORE) ) {
-      ## No more message parts.
-      $self->emit( recv => 
-        $alias, 
-        $msg, 
-        zmq_msg_data($msg), 
-        $parts_count 
-      );
+      if (@parts) {
+        $self->emit( multipart_recv => 
+          $alias, [ @parts, $data ] 
+        )
+      } else {
+        ## Single-part message.
+        $self->emit( recv =>
+          $alias, $data
+        )
+      }
       last RECV
     }
+
     ## More parts to follow.
-    $parts_count++;
+    push @parts, $data;
   }
 
   1  
@@ -436,7 +464,7 @@ POEx::ZMQ3::Sockets - POE ZeroMQ Component
 
   sub zmqsock_recv {
     my ($kern, $heap) = @_[KERNEL, HEAP];
-    my ($alias, $zmsg, $data) = @_[ARG0 .. $#_];
+    my ($alias, $data) = @_[ARG0 .. $#_];
 
     if ($data eq 'PONG') {
       ## Got a PONG. Send another PING:
@@ -530,6 +558,19 @@ ZeroMQ's B<zmq_msg_send>:
 
 Writes data to the ZMQ socket, when possible.
 
+Also see L</write_multipart>.
+
+=head3 write_multipart
+
+Takes a socket alias and a list of scalar data items to send as a multi-part
+message:
+
+  $zmq->write_multipart( $alias, $header, $content );
+
+See the ZeroMQ documentation for details regarding multi-part messages.
+
+Also see L</zmqsock_multipart_recv>
+
 =head3 close
 
 Takes a socket alias.
@@ -591,9 +632,15 @@ Emitted when some data has been received on a socket.
 
 $_[ARG0] is the socket's alias.
 
-$_[ARG1] is the actual L<ZMQ::LibZMQ3> message object.
+$_[ARG1] is the raw message data extracted via B<zmq_msg_data>.
 
-$_[ARG2] is the raw message data extracted via B<zmq_msg_data>.
+=head4 zmqsock_multipart_recv
+
+Emitted when multipart data has been received on a socket.
+
+$_[ARG0] is the socket's alias.
+
+$_[ARG1] is an ARRAY containing the raw data extracted from each message part.
 
 =head4 zmqsock_created
 
@@ -622,6 +669,10 @@ create
 
 =item *
 
+close
+
+=item *
+
 bind
 
 =item *
@@ -634,7 +685,7 @@ write
 
 =item *
 
-close
+write_multipart
 
 =back
 
