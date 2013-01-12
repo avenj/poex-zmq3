@@ -1,7 +1,3 @@
-* Multi-part
-  Sockets.pm needs its read handler fixed;
-   parts should probably go into an array or array-like object
-
 * Unimplemented classes:
   POEx::ZMQ3::
     Vent
