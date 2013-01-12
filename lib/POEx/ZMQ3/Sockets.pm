@@ -90,10 +90,11 @@ sub BUILD {
       zsock_write   => '_zsock_write',
       
       create      => '_zpub_create',
+      close       => '_zpub_close',
       bind        => '_zpub_bind',
       connect     => '_zpub_connect',
       write       => '_zpub_write',
-      close       => '_zpub_close',
+      write_multipart => '_zpub_write_multi',
     },
     $self => [
       'emitter_started',
@@ -207,6 +208,27 @@ sub write {
   $self->yield( 'write', @_ )
 }
 
+sub write_multipart {
+  my $self = shift;
+  $self->yield( 'write_multipart', @_ )
+}
+
+sub _zpub_write_multi {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my ($alias, @parts) = @_[ARG0 .. $#_];
+
+  my $ref = $self->_zmq_sockets->{$alias}
+    || confess "Cannot queue write; no such alias $alias";
+  while (my $data = shift @parts) {
+    my $item = ZMQSocket->new_buffer_item(
+      data => $data, 
+      (scalar(@parts) ? (flags => ZMQ_SNDMORE) : () ),
+    );
+    push @{ $ref->buffer }, $item;
+  }
+  $self->call( 'zsock_write', $alias )
+}
+
 sub _zpub_write {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, $data, $flags) = @_[ARG0 .. $#_];
@@ -216,7 +238,7 @@ sub _zpub_write {
   my $item = ZMQSocket->new_buffer_item(data => $data, flags => $flags);
   push @{ $ref->buffer }, $item;
 
-  $self->call( 'zsock_write', $alias );
+  $self->call( 'zsock_write', $alias )
 }
 
 sub _zsock_write {
@@ -276,8 +298,8 @@ sub _zsock_ready {
     return
   }
 
-  return unless 
-    zmq_getsockopt($struct->zsock, ZMQ_EVENTS) & ZMQ_POLLIN == ZMQ_POLLIN;
+  return unless defined zmq_getsockopt($struct->zsock, ZMQ_EVENTS)
+    and zmq_getsockopt($struct->zsock, ZMQ_EVENTS) & ZMQ_POLLIN == ZMQ_POLLIN;
   ## Socket can change state after a write/read without notifying us.
   ## Check again when we're finished.
   $self->yield( zsock_ready => undef, 0, $alias );
@@ -302,20 +324,16 @@ sub _zsock_ready {
     my $data = zmq_msg_data($msg);
 
     unless ( zmq_getsockopt($struct->zsock, ZMQ_RCVMORE) ) {
-      ## No more message parts.
       if (@parts) {
-        $self->emit( multipart_recv =>
-          $alias,
-          [ @parts ]
-        );
+        $self->emit( multipart_recv => 
+          $alias, [ @parts, $data ] 
+        )
       } else {
         ## Single-part message.
         $self->emit( recv =>
-          $alias,
-          $data
-        );
+          $alias, $data
+        )
       }
-
       last RECV
     }
 
@@ -539,6 +557,19 @@ ZeroMQ's B<zmq_msg_send>:
 
 Writes data to the ZMQ socket, when possible.
 
+Also see L</write_multipart>.
+
+=head3 write_multipart
+
+Takes a socket alias and a list of scalar data items to send as a multi-part
+message:
+
+  $zmq->write_multipart( $alias, $header, $content );
+
+See the ZeroMQ documentation for details regarding multi-part messages.
+
+Also see L</zmqsock_multipart_recv>
+
 =head3 close
 
 Takes a socket alias.
@@ -602,6 +633,14 @@ $_[ARG0] is the socket's alias.
 
 $_[ARG1] is the raw message data extracted via B<zmq_msg_data>.
 
+=head4 zmqsock_multipart_recv
+
+Emitted when multipart data has been received on a socket.
+
+$_[ARG0] is the socket's alias.
+
+$_[ARG1] is an ARRAY containing the raw data extracted from each message part.
+
 =head4 zmqsock_created
 
 Emitted when a socket has been created.
@@ -629,6 +668,10 @@ create
 
 =item *
 
+close
+
+=item *
+
 bind
 
 =item *
@@ -641,7 +684,7 @@ write
 
 =item *
 
-close
+write_multipart
 
 =back
 
