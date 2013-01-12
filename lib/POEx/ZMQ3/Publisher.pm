@@ -126,10 +126,12 @@ This base class does no special serialization on its own.
 
 =head3 publish_multipart
 
- $zpub->publish_multipart( @data );
+  $zpub->publish_multipart( @data );
 
 Publish multi-part data. For PUB-type sockets, this is frequently used to
-create message envelopes a SUB-type socket can subscribe to.
+create message envelopes a SUB-type socket can subscribe to:
+
+  $zpub->publish_multipart( $prefix, $data );
 
 =head2 Events
 
