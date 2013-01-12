@@ -1,6 +1,24 @@
 package POEx::ZMQ3;
 our $VERSION = '0.03_01';
 use strictures 1;
+use Carp;
+
+sub import {
+  my ($self, @modules) = @_;
+  my $pkg = caller;
+
+  my @failed;
+  for my $mod (@modules) {
+    my $c = "package $pkg; use POEx::ZMQ3::$mod;";
+    eval $c;
+    if ($@) { carp $@; push @failed, $mod }
+  }
+  
+  confess "Failed to import ".join ' ', @failed if @failed;
+  
+  1
+}
+
 
 sub new {
   my $class = shift;
