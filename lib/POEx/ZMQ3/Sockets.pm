@@ -298,8 +298,9 @@ sub _zsock_ready {
     return
   }
 
-  return unless defined zmq_getsockopt($struct->zsock, ZMQ_EVENTS)
-    and zmq_getsockopt($struct->zsock, ZMQ_EVENTS) & ZMQ_POLLIN == ZMQ_POLLIN;
+  my $zev = zmq_getsockopt($struct->zsock, ZMQ_EVENTS);
+  return unless defined $zev
+    and $zev & ZMQ_POLLIN == ZMQ_POLLIN;
   ## Socket can change state after a write/read without notifying us.
   ## Check again when we're finished.
   $self->yield( zsock_ready => undef, 0, $alias );
