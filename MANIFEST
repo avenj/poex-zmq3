@@ -24,4 +24,3 @@ t/01_component/pub_sub_multi.t
 t/01_component/rep_req.t
 t/02_subclass/publisher_subscriber.t
 t/02_subclass/requestor_replier.t
-TODO

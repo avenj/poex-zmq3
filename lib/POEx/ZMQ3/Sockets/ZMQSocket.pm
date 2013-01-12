@@ -45,23 +45,15 @@ has buffer => (
 
   sub new {
     my ($class, %params) = @_;
-    confess "Expected 'data' parameter" unless defined $params{data};
     my $self = [
-      $params{data},
+      ( $params{data} // confess 'Expected "data" parameter' ),
       $params{flags}
     ];
     bless $self, $class
   }
 
-  sub data {
-    my ($self) = @_;
-    $self->[DATA]
-  }
-
-  sub flags {
-    my ($self) = @_;
-    $self->[FLAGS]
-  }
+  sub data  { $_[0]->[DATA]  }
+  sub flags { $_[0]->[FLAGS] }
 }
 
 sub new_buffer_item {

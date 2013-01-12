@@ -1,5 +1,0 @@
-* Unimplemented classes:
-  POEx::ZMQ3::
-    Vent
-    Sink
-    Broker ( Router/Dealer combination(s) )
