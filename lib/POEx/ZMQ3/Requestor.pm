@@ -16,6 +16,16 @@ has targets => (
   default => sub { [] },
 );
 
+sub build_defined_states {
+  my ($self) = @_;
+  [
+    $self => [ qw/
+      emitter_started
+      zmqsock_recv
+    / ],
+  ]
+}
+
 sub start {
   my ($self, @endpoints) = @_;
 
@@ -29,12 +39,14 @@ sub start {
 
 sub emitter_started {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  $kernel->call( $self->zmq, subscribe => 'all' );
+
+  $kernel->call( $self->zmq => subscribe => qw/ 
+    recv
+  / );
 
   while (my $endpoint = shift @{ $self->targets }) {
     $self->add_connect( ZALIAS, $endpoint )
   }
-  1
 }
 
 after add_connect => sub {
@@ -52,9 +64,6 @@ sub request {
   my ($self, $data) = @_;
   $self->zmq->write( ZALIAS, $data )
 }
-
-sub zmqsock_created {}
-sub zmqsock_registered {}
 
 sub zmqsock_recv {
   my ($kernel, $self) = @_[KERNEL, OBJECT];

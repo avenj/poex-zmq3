@@ -12,6 +12,15 @@ with 'MooX::Role::POE::Emitter';
 
 requires 'start', 'stop';
 
+has defined_states => (
+  is      => 'ro',
+  isa     => sub { 
+    $_[0] and ref $_[0] eq 'ARRAY'
+      or confess "defined_states should be an ARRAY"
+  },
+  builder => 'build_defined_states',
+);
+sub build_defined_states { [$_[0] => ['emitter_started'] ] }
 
 has zmq => (
   lazy    => 1,
@@ -19,14 +28,13 @@ has zmq => (
   default => sub { POEx::ZMQ3::Sockets->new },
 );
 
-
 has _zmq_binds => (
-  is => 'ro',
+  is      => 'ro',
   default => sub { +{} }
 );
 
 has _zmq_connects => (
-  is => 'ro',
+  is      => 'ro',
   default => sub { +{} },
 );
 
@@ -81,16 +89,8 @@ around _start_emitter => sub {
   }) unless $self->has_pluggable_type_prefixes;
 
   $self->set_object_states([
-    $self => [ qw/
-      emitter_started
-      zmqsock_registered
-      zmqsock_created
-      zmqsock_recv
-    / ],
-    (
-      $self->has_object_states ?
-        $self->object_states : ()
-    )
+    @{ $self->defined_states } ,
+    ( $self->has_object_states ? @{ $self->object_states } : () )
   ]);
 
   $self->$orig(@_);
@@ -137,17 +137,19 @@ see L</zmq>.
 Some frontend methods for managing connections on a socket are provided. See
 below.
 
-=head2 zmq
+=head2 Methods
+
+=head3 zmq
 
 Takes no arguments.
 
 Returns the current L<POEx::ZMQ3::Sockets> instance.
 
-=head2 add_bind
+=head3 add_bind
 
 Takes a L<POEx::ZMQ3::Sockets> socket alias and an endpoint to bind.
 
-=head2 list_binds
+=head3 list_binds
 
 Takes an optional socket alias.
 
@@ -156,22 +158,37 @@ Returns a list of currently-tracked bound endpoints for the socket.
 If no alias is specified, returns all currently-tracked aliases with bound
 endpoints.
 
-=head2 add_connect
+=head3 add_connect
 
 Takes a socket alias and an endpoint to connect to.
 
-=head2 list_connects
+=head3 list_connects
 
 Takes the same arguments as L</list_binds>, but lists connect-type
 endpoints instead.
 
-=head2 close_socket
+=head3 close_socket
 
 Takes a socket alias.
 
 Closes and stops tracking the specified socket.
 
 (This happens automatically when 'stop' is called.)
+
+=head2 Consumers
+
+A consumer session should override B<build_defined_states> to return an ARRAY
+suitable for feeding to L<MooX::Role::POE::Emitter/object_states>:
+
+  sub build_defined_states {
+    my ($self) = @_;
+    [
+      $self => [ qw/
+        emitter_started
+        zmqsock_recv
+      / ],
+    ]
+  }
 
 =head1 AUTHOR
 

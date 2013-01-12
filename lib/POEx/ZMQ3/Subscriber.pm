@@ -4,6 +4,9 @@ use Carp;
 use Moo;
 use POE;
 
+## FIXME
+##  Easier subscription management wrt. multipart_recv
+
 use namespace::clean;
 
 has targets => (
@@ -15,6 +18,16 @@ sub ZALIAS () { 'sub' }
 
 with 'POEx::ZMQ3::Role::Emitter';
 
+sub build_defined_states {
+  my ($self) = @_;
+  [
+    $self => [ qw/
+      emitter_started
+      zmqsock_recv
+      zmqsock_multipart_recv
+    / ],
+  ]
+}
 
 sub start {
   my ($self, @targets) = @_;
@@ -28,8 +41,7 @@ sub start {
 sub emitter_started {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
 
-  $poe_kernel->call( $self->zmq->session_id, subscribe => 'all' );
-
+  $kernel->call( $self->zmq => subscribe => 'all' );
   $self->zmq->set_zmq_subscribe( ZALIAS );
   $self->add_connect( ZALIAS, $_ ) for @{ $self->targets };
   $self->targets([]);
@@ -48,13 +60,16 @@ sub stop {
   $self->_stop_emitter;
 }
 
-sub zmqsock_registered {}
-sub zmqsock_created {}
-
 sub zmqsock_recv {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, $data) = @_[ARG0, ARG1];
   $self->emit( 'received', $data )
+}
+
+sub zmqsock_multipart_recv {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my ($alias, $parts) = @_[ARG0, ARG1];
+  ## FIXME
 }
 
 1;

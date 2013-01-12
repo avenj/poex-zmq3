@@ -7,7 +7,6 @@ use POE;
 require POSIX;
 
 use ZMQ::LibZMQ3;
-## FIXME pull specific constants
 use ZMQ::Constants 
   ## Socket types.
   qw/

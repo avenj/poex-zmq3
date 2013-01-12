@@ -15,6 +15,16 @@ has listen => (
   default => sub { [] },
 );
 
+sub build_defined_states {
+  my ($self) = @_;
+  [
+    $self => [ qw/
+      emitter_started
+      zmqsock_recv
+    /],
+  ],
+}
+
 sub start {
   my ($self, @endpoints) = @_;
 
@@ -28,11 +38,11 @@ sub start {
 sub emitter_started {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
 
-  $poe_kernel->call( $self->zmq->session_id, subscribe => 'all' );
+  $poe_kernel->call( $self->zmq->session_id, subscribe => 'recv' );
+
   while (my $target = shift @{ $self->listen }) {
     $self->add_bind( ZALIAS, $target )
   }
-  1
 }
 
 after add_bind => sub {
@@ -50,9 +60,6 @@ sub reply {
   my ($self, $data) = @_;
   $self->zmq->write( ZALIAS, $data )
 }
-
-sub zmqsock_created {}
-sub zmqsock_registered {}
 
 sub zmqsock_recv {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
