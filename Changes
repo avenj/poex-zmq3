@@ -1,5 +1,17 @@
 ## Changes for POEx::ZMQ3
 
+
+  * 0.02     (11 Jan 2013)
+    INCOMPATIBLE CHANGES:
+     - zmqsock_recv no longer broadcasts the ZMQ message object
+       Seems like a waste of memory for most cases.
+       Will likely end up adding a configurable attrib to include it;
+       may still be useful for darker forms of magic.
+
+    Proper multi-part message support:
+     - zmqsock_multipart_recv
+     - write_multipart
+
   * 0.01     (11 Jan 2013)
     Minor cleanups; first non-devel release.
 

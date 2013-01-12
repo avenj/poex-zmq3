@@ -37,8 +37,9 @@ sub _start {
 }
 
 sub timeout {
-  $_[KERNEL]->alarm_remove_all;
-  $_[HEAP]->stop;
+  my ($kern, $zmq) = @_[KERNEL, HEAP];
+  $kern->alarm_remove_all;
+  $zmq->stop;
   fail "Timed out"
 }
 
@@ -69,11 +70,8 @@ sub publish_things {
 }
 
 sub zmqsock_multipart_recv {
-  my ($kern, $zmq) = @_[KERNEL, HEAP];
-  my ($alias, $parts) = @_[ARG0 .. $#_];
-
-  fail "How did we recv on our PUB socket?"
-    if $alias eq 'server';
+  my ($kern, $zmq)    = @_[KERNEL, HEAP];
+  my ($alias, $parts) = @_[ARG0, ARG1];
 
   my ($envel, $content) = @$parts;
 

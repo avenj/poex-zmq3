@@ -1,5 +1,5 @@
 package POEx::ZMQ3;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 use strictures 1;
 
 sub new {
