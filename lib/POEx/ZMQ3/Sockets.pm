@@ -1,7 +1,7 @@
 package POEx::ZMQ3::Sockets;
 
 use 5.10.1;
-use Carp;
+use Carp::POE;
 use Moo;
 use POE;
 require POSIX;
@@ -176,12 +176,12 @@ sub bind {
 sub _zpub_bind {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, $endpt) = @_[ARG0 .. $#_];
-  confess "Expected an alias and endpoint"
+  croak "Expected an alias and endpoint"
     unless defined $alias and defined $endpt;
 
   my $zsock = $self->get_zmq_socket($alias)
-    or confess "Cannot bind; no such alias $alias";
-  zmq_bind($zsock, $endpt) and confess "zmq_bind failed; $!";
+    or croak "Cannot bind; no such alias $alias";
+  zmq_bind($zsock, $endpt) and croak "zmq_bind failed; $!";
 
   $self->emit( 'bind_added', $alias, $endpt )
 }
@@ -195,12 +195,12 @@ sub connect {
 sub _zpub_connect {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, $endpt) = @_[ARG0 .. $#_];
-  confess "Expected an alias and endpoint"
+  croak "Expected an alias and endpoint"
     unless defined $alias and defined $endpt;
 
   my $zsock = $self->get_zmq_socket($alias)
-    or confess "Cannot connect; no such alias $alias";
-  zmq_connect($zsock, $endpt) and confess "zmq_connect failed; $!";
+    or croak "Cannot connect; no such alias $alias";
+  zmq_connect($zsock, $endpt) and croak "zmq_connect failed; $!";
 
   $self->emit( 'connect_added', $alias, $endpt )
 }
@@ -221,7 +221,7 @@ sub _zpub_write_multi {
   my ($alias, @parts) = @_[ARG0 .. $#_];
 
   my $ref = $self->_zmq_sockets->{$alias}
-    || confess "Cannot queue write; no such alias $alias";
+    || croak "Cannot queue write; no such alias $alias";
   while (my $data = shift @parts) {
     my $item = ZMQSocket->new_buffer_item(
       data => $data, 
@@ -237,10 +237,10 @@ sub _zpub_write {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($alias, $data, $flags) = @_[ARG0 .. $#_];
 
-  my $ref = $self->_zmq_sockets->{$alias}
-    || confess "Cannot queue write; no such alias $alias";
+  my $struct = $self->_zmq_sockets->{$alias}
+    || croak "Cannot queue write; no such alias $alias";
   my $item = ZMQSocket->new_buffer_item(data => $data, flags => $flags);
-  push @{ $ref->buffer }, $item;
+  push @{ $struct->buffer }, $item;
 
   $self->call( 'zsock_write', $alias )
 }
@@ -249,9 +249,9 @@ sub _zsock_write {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $alias = $_[ARG0];
   my $struct = $self->_zmq_sockets->{$alias}
-    || confess "Cannot execute write; no such alias $alias";
+    || croak "Cannot execute write; no such alias $alias";
 
-  return unless @{ $struct->buffer };
+  return if $struct->is_closing or not @{ $struct->buffer };
 
   my $next  = $struct->buffer->[0];
   my $data  = $next->data;
@@ -270,7 +270,7 @@ sub _zsock_write {
       && ($rc//0) == -1 ) {
 
     unless ($rc == POSIX::EAGAIN || $rc == POSIX::EINTR) {
-      confess "zmq_msg_send failed; $!";
+      croak "zmq_msg_send failed; $!";
     }
   } else {
     ## Successfully queued on socket.
@@ -302,6 +302,8 @@ sub _zsock_ready {
     return
   }
 
+  return if $struct->is_closing;
+
   my $zev = zmq_getsockopt($struct->zsock, ZMQ_EVENTS);
   return unless defined $zev
     and $zev & ZMQ_POLLIN == ZMQ_POLLIN;
@@ -323,7 +325,7 @@ sub _zsock_ready {
         $self->yield(zsock_ready => undef, 0, $alias);
         return
       }
-      confess "zmq_msg_recv failed; $!"
+      croak "zmq_msg_recv failed; $!"
     }
 
     my $data = zmq_msg_data($msg);
