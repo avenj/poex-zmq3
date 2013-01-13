@@ -1,5 +1,9 @@
 ## Changes for POEx::ZMQ3
 
+  * 0.05     (13 Jan 2013)
+    Defer socket destruction slightly.
+    Gives zmq_close time to clean up.
+
   * 0.04     (13 Jan 2013)
     Socket-specific classes now use their Emitter's alias as their
     socket alias as well, making it easier to address their socket

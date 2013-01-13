@@ -1,5 +1,5 @@
 package POEx::ZMQ3;
-our $VERSION = '0.04_01';
+our $VERSION = '0.05_01';
 use strictures 1;
 use Carp;
 
