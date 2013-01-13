@@ -20,6 +20,7 @@ META.json
 META.yml
 README
 t/00_utils/context.t
+t/00_utils/loader.t
 t/01_component/pub_sub.t
 t/01_component/pub_sub_multi.t
 t/01_component/rep_req.t

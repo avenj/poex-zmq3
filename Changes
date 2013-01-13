@@ -1,5 +1,10 @@
 ## Changes for POEx::ZMQ3
 
+  * 0.04     (13 Jan 2013)
+    Socket-specific classes now use their Emitter's alias as their
+    socket alias as well, making it easier to address their socket
+    directly by referring to it as '$instance->alias'
+
   * 0.03     (12 Jan 2013)
     Publisher; Add ->publish_multipart()
 
