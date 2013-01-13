@@ -247,7 +247,7 @@ sub _zpub_write {
 
 sub _zsock_write {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  my $alias = $_[ARG0];
+  my $alias  = $_[ARG0];
   my $struct = $self->_zmq_sockets->{$alias}
     || confess "Cannot execute write; no such alias $alias";
 
@@ -403,13 +403,8 @@ sub _zsock_unwatch {
   my ($kernel, $self, $alias) = @_[KERNEL, OBJECT, ARG0];
   my $struct = $self->_zmq_sockets->{$alias};
   ## Deferred destruction eliminates 'bad FD' at exit.
-  $self->yield(sub { $_[KERNEL]->select( $struct->handle ) } );
-  $self->yield(
-    sub {
-      delete $_[OBJECT]->_zmq_sockets->{$alias};
-      $self->yield(sub { $struct });
-    }
-  );
+  $self->yield(sub { $_[KERNEL]->select( $struct->handle ) });
+  $self->yield(sub { delete $_[OBJECT]->_zmq_sockets->{$alias} });
 }
 
 sub _zmq_clear_sock {
