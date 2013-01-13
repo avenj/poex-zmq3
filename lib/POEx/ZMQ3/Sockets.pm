@@ -402,10 +402,10 @@ sub _zsock_watch {
 sub _zsock_unwatch {
   my ($kernel, $self, $alias) = @_[KERNEL, OBJECT, ARG0];
   my $struct = $self->_zmq_sockets->{$alias};
-  $kernel->select( $struct->handle );
+  ## Deferred destruction eliminates 'bad FD' at exit.
+  $self->yield(sub { $_[KERNEL]->select( $struct->handle ) } );
   $self->yield(
     sub {
-      ## Deferred destruction eliminates 'bad FD' at exit.
       delete $_[OBJECT]->_zmq_sockets->{$alias};
       $self->yield(sub { $struct });
     }
@@ -414,13 +414,11 @@ sub _zsock_unwatch {
 
 sub _zmq_clear_sock {
   my ($self, $alias) = @_;
-
   my $zsock = $self->get_zmq_socket($alias)
     or confess "Cannot _zmq_clear_sock; no such alias $alias";
 
   zmq_close($zsock);
   $self->_zmq_sockets->{$alias}->is_closing(1);
-  
   $self->yield( zsock_unwatch => $alias )
 }
 
