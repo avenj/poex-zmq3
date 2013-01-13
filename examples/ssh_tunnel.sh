@@ -11,7 +11,8 @@ ssh -f ${USER}@${ENDPOINT} \
 :<<'CMTBLK'
 
 ... then bind tcp://127.0.0.1:REMOTEPORT and connect 127.0.0.1:LOCALPORT
-on the side running the tunnel.
+on the side running the tunnel. (You only want to do this if you control the
+systems involved, obviously.)
 
 SSH is a pretty convenient poor man's VPN, providing a secure
 way to talk to a remote ZMQ socket that is only bound to localhost.

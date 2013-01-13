@@ -72,7 +72,9 @@ L<POEx::ZMQ3::Requestor> and L<POEx::ZMQ3::Replier> implement REQ and REP type
 sockets.
 
 These are very simple base implementations. They can be subclassed or combined
-in varied ways to do more powerful things.
+in varied ways to do more powerful things. 
+As of this writing, more advanced socket types are lacking component classes,
+but these can be easily implemented with L<POEx::ZMQ3::Sockets>.
 
 =head2 Roles
 
