@@ -401,12 +401,9 @@ sub _zsock_watch {
 
 sub _zsock_unwatch {
   my ($kernel, $self, $alias) = @_[KERNEL, OBJECT, ARG0];
-  my $struct = delete $self->_zmq_sockets->{$alias};
+  my $struct = $self->_zmq_sockets->{$alias};
   $kernel->select( $struct->handle );
-  ## Keeping us alive just a hair longer helps with flaky 'bad FD' errs.
-  ## This generally only shows up when running tests.
-  ## (They appear to exit before ZeroMQ has finished cleanup.)
-  $self->yield(sub { $struct->zsock });
+  $self->yield(sub { delete $_[OBJECT]->_zmq_sockets->{$alias} });
 }
 
 sub _zmq_clear_sock {
