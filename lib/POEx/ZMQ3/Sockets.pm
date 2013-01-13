@@ -406,7 +406,7 @@ sub _zsock_unwatch {
   ## Keeping us alive just a hair longer helps with flaky 'bad FD' errs.
   ## This generally only shows up when running tests.
   ## (They appear to exit before ZeroMQ has finished cleanup.)
-  $self->yield(sub { $struct });
+  $self->yield(sub { $struct->zsock });
 }
 
 sub _zmq_clear_sock {
