@@ -31,6 +31,7 @@ sub start {
   my ($self, @targets) = @_;
   push @{ $self->targets }, @targets;
   $self->zmq->start;
+
   $self->zmq->create( $self->alias, 'SUB' );
 
   $self->_start_emitter;

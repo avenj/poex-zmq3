@@ -90,9 +90,8 @@ my $build = $class->new(
     'MooX::Role::POE::Emitter'  => '0.11',
 
     'POE'                       => '1.3',
-    'Carp::POE'                 => 0,
 
-    'ZMQ::LibZMQ3'              => '1.05',
+    'ZMQ::LibZMQ3'              => '1.06',
     'ZMQ::Constants'            => '1.02',
   },
 
