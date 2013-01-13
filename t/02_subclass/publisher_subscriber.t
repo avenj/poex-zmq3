@@ -18,7 +18,7 @@ my $expected = {
   'published data looks ok' => 5,
 };
 
-alarm 10;
+alarm 60;
 POE::Session->create(
   inline_states => {
     _start => sub {
@@ -31,9 +31,9 @@ POE::Session->create(
 
     zeromq_publishing_on => sub {
       $got->{'got publishing_on'} = 1;
-      $zpub->timer( '0.2' => sub {
+      $zpub->timer( 0.5 => sub {
         $zpub->publish('hello listeners!');
-        $zpub->timer( '0.2' => $_[STATE] );
+        $zpub->timer( 0.5 => $_[STATE] );
       });
     },
 
@@ -45,7 +45,7 @@ POE::Session->create(
       $got->{'received published'}++;
       $got->{'published data looks ok'}++
         if $_[ARG0] eq 'hello listeners!';
-      if ($got->{'received published'} == 5) {
+      if ($got->{'received published'} == $expected->{'received published'}) {
         $_[KERNEL]->yield( 'diediedie' );
       }
     },

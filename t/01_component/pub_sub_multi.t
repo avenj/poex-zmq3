@@ -10,9 +10,9 @@ use_ok 'POEx::ZMQ3::Sockets';
 
 my $got = {};
 my $expected = {
-  'SUB got msg'             => 20,
-  'SUB got correct header'  => 20,
-  'SUB got correct content' => 20,
+  'SUB got msg'             => 5,
+  'SUB got correct header'  => 5,
+  'SUB got correct content' => 5,
 };
 
 POE::Session->create(
@@ -28,7 +28,7 @@ POE::Session->create(
   ],
 );
 
-alarm 20;
+alarm 60;
 sub _start {
   my ($kern, $zmq) = @_[KERNEL, HEAP];
   $kern->sig( ALRM => 'timeout' );
@@ -66,7 +66,7 @@ sub publish_things {
     'B',
     'This is message B'
   );
-  $kern->delay( 'publish_things' => 0.01 )
+  $kern->delay( 'publish_things' => 0.5 )
 }
 
 sub zmqsock_multipart_recv {

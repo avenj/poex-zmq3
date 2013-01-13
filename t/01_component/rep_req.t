@@ -10,8 +10,8 @@ use_ok 'POEx::ZMQ3::Sockets';
 
 my $got = {};
 my $expected = {
-  'REP got request' => 200,
-  'REQ got reply'   => 200,
+  'REP got request' => 1000,
+  'REQ got reply'   => 1000,
 };
 POE::Session->create(
   heap => POEx::ZMQ3::Sockets->new,
