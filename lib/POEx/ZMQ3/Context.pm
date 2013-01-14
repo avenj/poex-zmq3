@@ -37,11 +37,11 @@ sub reset {
 
 =head1 NAME
 
-POEx::ZMQ3::Context - A ZeroMQ context singleton
+POEx::ZMQ3::Context - A ZMQ context singleton
 
 =head1 SYNOPSIS
 
-  ## new() returns (lazy build) singleton:
+  ## ::Context->new() returns (lazy build) singleton:
   my $zsock = zmq_socket( POEx::ZMQ3::Context->new, $type );
   ## ... if you fork later:
   POEx::ZMQ3::Context->reset;
@@ -50,7 +50,9 @@ POEx::ZMQ3::Context - A ZeroMQ context singleton
 
 A ZeroMQ context should be shared amongst pieces of a single process.
 
-This is the singleton used internally by L<POEx::ZMQ3> bits.
+This is the singleton used internally by L<POEx::ZMQ3> bits; you can use it to
+retrieve the current context object if you are adding independently-managed 
+L<ZMQ::LibZMQ3> sockets to the currently-running process.
 
 Forked children should call C<< POEx::ZMQ3::Context->reset >> before 
 issuing new socket operations.
