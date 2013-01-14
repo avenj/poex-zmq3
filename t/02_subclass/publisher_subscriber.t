@@ -14,8 +14,8 @@ my $got = {};
 my $expected = {
   'got publishing_on' => 1,
   'got subscribed_to' => 1,
-  'received published'      => 3,
-  'published data looks ok' => 3,
+  'received published'      => 1,
+  'published data looks ok' => 1,
 };
 
 alarm 60;

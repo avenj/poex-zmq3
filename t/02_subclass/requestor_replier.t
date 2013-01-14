@@ -16,10 +16,10 @@ my $got = {};
 my $expected = {
   'got connected_to' => 1,
   'got replying_on'  => 1,
-  'got got_request'  => 1000,
-  'request looks ok' => 1000,
-  'got got_reply'    => 1000,
-  'reply looks ok'   => 1000,
+  'got got_request'  => 10,
+  'request looks ok' => 10,
+  'got got_reply'    => 10,
+  'reply looks ok'   => 10,
 };
 
 alarm 10;

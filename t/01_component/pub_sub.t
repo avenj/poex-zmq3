@@ -10,7 +10,7 @@ use_ok 'POEx::ZMQ3::Sockets';
 
 my $got = {};
 my $expected = {
-  'SUB got msg' => 2,
+  'SUB got msg' => 1,
 };
 
 POE::Session->create(
