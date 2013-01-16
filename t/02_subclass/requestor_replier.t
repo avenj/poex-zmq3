@@ -1,6 +1,7 @@
 use Test::More;
-use Test::TCP 'empty_port';
-my $addr = 'tcp://127.0.0.1:' . empty_port;
+use strict; use warnings qw/FATAL all/;
+
+my $addr = 'inproc://repreqtest2';
 
 use POE;
 
