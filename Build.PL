@@ -91,7 +91,7 @@ my $build = $class->new(
 
     'POE'                       => '1.3',
 
-    'ZMQ::LibZMQ3'              => '1.06',
+    'ZMQ::LibZMQ3'              => '1.08',
     'ZMQ::Constants'            => '1.02',
   },
 
