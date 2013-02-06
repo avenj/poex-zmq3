@@ -1,15 +1,15 @@
 ## Changes for POEx::ZMQ3
 
-  * 0.05     (13 Jan 2013)
+0.05     (13 Jan 2013)
     Defer socket destruction slightly.
     Gives zmq_close time to clean up.
 
-  * 0.04     (13 Jan 2013)
+0.04     (13 Jan 2013)
     Socket-specific classes now use their Emitter's alias as their
     socket alias as well, making it easier to address their socket
     directly by referring to it as '$instance->alias'
 
-  * 0.03     (12 Jan 2013)
+0.03     (12 Jan 2013)
     Publisher; Add ->publish_multipart()
 
     Fix dependency on MooX::Role::POE::Emitter.
@@ -17,7 +17,7 @@
 
     Small optimizations and cleanups.
 
-  * 0.02     (11 Jan 2013)
+0.02     (11 Jan 2013)
     INCOMPATIBLE CHANGES:
      - zmqsock_recv no longer broadcasts the ZMQ message object
        Seems like a waste of memory for most cases.
@@ -28,10 +28,10 @@
      - zmqsock_multipart_recv
      - write_multipart
 
-  * 0.01     (11 Jan 2013)
+0.01     (11 Jan 2013)
     Minor cleanups; first non-devel release.
 
-  * 0.00_10  (11 Jan 2013)
+0.00_10  (11 Jan 2013)
     Re-designed/re-worked:
      - POEx::ZMQ3::Sockets added. This is the new backend component.
      - POEx::ZMQ3::Role::Sockets no longer exists
@@ -39,7 +39,7 @@
 
     This release clears all current known bugs.
 
-  * 0.00_05  (10 Jan 2013)
+0.00_05  (10 Jan 2013)
     FD may be ready-to-read immediately after a write, but
     we may not catch an event.
     This release fixes req-rep pairs as seen in examples/
@@ -47,15 +47,15 @@
     However, the backend interfaces are likely to change
     (see scratchpad branch in git).
 
-  * 0.00_04  (5 Jan 2013)
+0.00_04  (5 Jan 2013)
     Be a bit more "safe" in how we treat REP / REQ pairs.
 
-  * 0.00_03  (5 Jan 2013)
+0.00_03  (5 Jan 2013)
     Pass tests somewhat more consistently.
 
-  * 0.00_02  (5 Jan 2013)
+0.00_02  (5 Jan 2013)
     Eliminate some test failures.
     Still running into some flaky SIGABRTs.
 
-  * 0.00_01  (5 Jan 2013)
+0.00_01  (5 Jan 2013)
     Initial development release.
