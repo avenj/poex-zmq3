@@ -1,0 +1,76 @@
+# NAME
+
+POEx::ZMQ3 - POE-enabled asynchronous ZeroMQ components
+
+# SYNOPSIS
+
+    use POEx::ZMQ3;
+    ## A POEx::ZMQ3::Sockets instance:
+    my $zmq = POEx::ZMQ3->new;
+
+(See [POEx::ZMQ3::Sockets](http://search.cpan.org/perldoc?POEx::ZMQ3::Sockets) for a complete example.)
+
+# DESCRIPTION
+
+A set of roles and classes providing a [POE](http://search.cpan.org/perldoc?POE)\-enabled asynchronous interface
+to __ZeroMQ__ (version 3) via [ZMQ::LibZMQ3](http://search.cpan.org/perldoc?ZMQ::LibZMQ3).
+
+ZeroMQ is a powerful high-performance messaging library aimed at
+concurrent/distributed applications. (If you're just getting started with
+ZeroMQ, it is strongly advised you read the 'zguide'
+([http://zguide.zeromq.org](http://zguide.zeromq.org)) before jumping in.)
+
+This project attempts to stay on top of changes in ZeroMQ and the relevant
+Perl bindings. 
+You will need __zeromq-3.2.2__ or newer: [http://www.zeromq.org](http://www.zeromq.org)
+
+## Classes
+
+[POEx::ZMQ3::Sockets](http://search.cpan.org/perldoc?POEx::ZMQ3::Sockets) is the backend ZMQ component. It can be used directly
+to add flexible ZeroMQ functionality to your POE applications.
+
+There are some higher-level components providing simple access to single
+sockets belonging to basic types:
+
+[POEx::ZMQ3::Publisher](http://search.cpan.org/perldoc?POEx::ZMQ3::Publisher) and [POEx::ZMQ3::Subscriber](http://search.cpan.org/perldoc?POEx::ZMQ3::Subscriber) implement PUB and SUB
+type ZeroMQ sockets.
+
+[POEx::ZMQ3::Requestor](http://search.cpan.org/perldoc?POEx::ZMQ3::Requestor) and [POEx::ZMQ3::Replier](http://search.cpan.org/perldoc?POEx::ZMQ3::Replier) implement REQ and REP type
+sockets.
+
+These are very simple base implementations. They can be subclassed or combined
+in varied ways to do more powerful things. 
+As of this writing, more advanced socket types are lacking component classes,
+but these can be easily implemented with [POEx::ZMQ3::Sockets](http://search.cpan.org/perldoc?POEx::ZMQ3::Sockets).
+
+## Roles
+
+[MooX::Role::POE::Emitter](http://search.cpan.org/perldoc?MooX::Role::POE::Emitter) provides [POE](http://search.cpan.org/perldoc?POE) event emitter functionality and
+some endpoint management methods.
+
+# CAVEATS
+
+## Forking
+
+If your application forks, the global context object needs to be reset by 
+calling `POEx::ZMQ3::Context->reset` before creating sockets. 
+See [POEx::ZMQ3::Context](http://search.cpan.org/perldoc?POEx::ZMQ3::Context).
+
+# BUGS
+
+Probably many; this software is fairly early in development.
+
+See [http://github.com/avenj/poex-zmq3](http://github.com/avenj/poex-zmq3) and feel free to report bugs via
+either __RT__ or __GitHub__.
+
+# SEE ALSO
+
+The `examples/` directory in the distribution and perhaps the tests in `t/`.
+
+[ZMQ::LibZMQ3](http://search.cpan.org/perldoc?ZMQ::LibZMQ3)
+
+[http://www.zeromq.org](http://www.zeromq.org)
+
+# AUTHOR
+
+Jon Portnoy <avenj@cobaltirc.org>
