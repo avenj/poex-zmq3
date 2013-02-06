@@ -1,5 +1,10 @@
 ## Changes for POEx::ZMQ3
 
+0.060001   (06 Feb 2013)
+  Improved tests, documentation improvements.
+  Switch to dzil.
+
+
 0.05     (13 Jan 2013)
     Defer socket destruction slightly.
     Gives zmq_close time to clean up.
