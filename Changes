@@ -1,9 +1,17 @@
 ## Changes for POEx::ZMQ3
 
+0.060003   (30 Jul 2013)
+
+  Fix deprecated use of 'when()' in test suite
+
+
 0.060002   (06 Feb 2013)
+
   Fix versioning
 
+
 0.060001   (06 Feb 2013)
+
   Improved tests, documentation improvements.
   Switch to dzil.
 
