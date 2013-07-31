@@ -50,22 +50,19 @@ sub zmqsock_recv {
   my ($kern, $zmq) = @_[KERNEL, HEAP];
   my ($alias, $data) = @_[ARG0 .. $#_];
 
-  for ($alias) {
-    when ('server') {
-      ## Got a REQ on our REP server
-      $got->{'REP got request'}++;
-      $zmq->write( $alias, 'A reply' )
+  if ($alias eq 'server') {
+    # Got a REQ on our REP sock
+    $got->{'REP got request'}++;
+    $zmq->write( $alias, 'A reply' )
+  } elsif ($alias eq 'client') {
+    $got->{'REQ got reply'}++;
+    if ($got->{'REQ got reply'} == $expected->{'REQ got reply'}) {
+      $zmq->stop;
+      return
     }
-
-    when ('client') {
-      ## Got a REP on our REQ server
-      $got->{'REQ got reply'}++;
-      if ($got->{'REQ got reply'} == $expected->{'REQ got reply'}) {
-        $zmq->stop;
-        return
-      }
-      $zmq->write( $alias, 'A request' )
-    }
+    $zmq->write( $alias, 'A request' )
+  } else {
+    die "Funky, I should be unreachable"
   }
 }
 
