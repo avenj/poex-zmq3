@@ -1,77 +1,53 @@
-## Changes for POEx::ZMQ3
+Revision history for Perl module POEx::ZMQ3
 
-0.060003   (30 Jul 2013)
+0.060003 2013-06-30
 
-  Fix deprecated use of 'when()' in test suite
+  - Fix deprecated use of 'when()' in test suite
 
+0.060002 2013-02-06
 
-0.060002   (06 Feb 2013)
+  - Fix versioning
 
-  Fix versioning
+0.060001 2013-02-06
 
+  - Improved tests, documentation improvements.
 
-0.060001   (06 Feb 2013)
+  - Switch to dzil.
 
-  Improved tests, documentation improvements.
-  Switch to dzil.
+0.05 2013-01-13
 
+  - Defer socket destruction slightly to give zmq_close time to clean up.
 
-0.05     (13 Jan 2013)
-    Defer socket destruction slightly.
-    Gives zmq_close time to clean up.
+0.04 2013-01-13
 
-0.04     (13 Jan 2013)
-    Socket-specific classes now use their Emitter's alias as their
+  - Socket-specific classes now use their Emitter's alias as their
     socket alias as well, making it easier to address their socket
     directly by referring to it as '$instance->alias'
 
-0.03     (12 Jan 2013)
-    Publisher; Add ->publish_multipart()
+0.03 2013-01-12
 
-    Fix dependency on MooX::Role::POE::Emitter.
+  - Publisher; Add ->publish_multipart()
+
+  - Fix dependency on MooX::Role::POE::Emitter.
     Need at least 0.11.
 
-    Small optimizations and cleanups.
+  - Small optimizations and cleanups.
 
-0.02     (11 Jan 2013)
-    INCOMPATIBLE CHANGES:
-     - zmqsock_recv no longer broadcasts the ZMQ message object
-       Seems like a waste of memory for most cases.
-       Will likely end up adding a configurable attrib to include it;
-       may still be useful for darker forms of magic.
+0.02 2013-01-11
 
-    Proper multi-part message support:
-     - zmqsock_multipart_recv
-     - write_multipart
+  - zmqsock_recv no longer broadcasts the ZMQ message object
+    Seems like a waste of memory for most cases.
+    Will likely end up adding a configurable attrib to include it;
+    may still be useful for darker forms of magic.
 
-0.01     (11 Jan 2013)
-    Minor cleanups; first non-devel release.
+  - Proper multi-part message support:
+     zmqsock_multipart_recv
+     write_multipart
 
-0.00_10  (11 Jan 2013)
-    Re-designed/re-worked:
-     - POEx::ZMQ3::Sockets added. This is the new backend component.
-     - POEx::ZMQ3::Role::Sockets no longer exists
-       (nor does Role::Endpoints)
+0.01 2013-01-11
 
-    This release clears all current known bugs.
+  - Minor cleanups; first non-devel release.
+  
+0.00_01 2013-01-05
 
-0.00_05  (10 Jan 2013)
-    FD may be ready-to-read immediately after a write, but
-    we may not catch an event.
-    This release fixes req-rep pairs as seen in examples/
-
-    However, the backend interfaces are likely to change
-    (see scratchpad branch in git).
-
-0.00_04  (5 Jan 2013)
-    Be a bit more "safe" in how we treat REP / REQ pairs.
-
-0.00_03  (5 Jan 2013)
-    Pass tests somewhat more consistently.
-
-0.00_02  (5 Jan 2013)
-    Eliminate some test failures.
-    Still running into some flaky SIGABRTs.
-
-0.00_01  (5 Jan 2013)
-    Initial development release.
+  - Initial development release.
