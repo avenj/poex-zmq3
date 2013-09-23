@@ -205,6 +205,13 @@ sub _zpub_connect {
   $self->emit( 'connect_added', $alias, $endpt )
 }
 
+sub monitor {
+  # FIXME
+  #  Call zmq_socket_monitor (if we have it)
+  #  Talk to our own inproc:// for monitor
+  #  Translate to POE events
+  #  Return false if already monitored?
+}
 
 sub write {
   my $self = shift;
