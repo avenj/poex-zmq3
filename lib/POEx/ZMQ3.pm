@@ -48,9 +48,9 @@ A set of roles and classes providing a L<POE>-enabled asynchronous interface
 to B<ZeroMQ> (version 3) via L<ZMQ::LibZMQ3>.
 
 ZeroMQ is a powerful high-performance messaging library aimed at
-concurrent/distributed applications. (If you're just getting started with
-ZeroMQ, it is strongly advised you read the 'zguide'
-(L<http://zguide.zeromq.org>) before jumping in.)
+concurrent/distributed applications. If you're just getting started with
+ZeroMQ, it is strongly advised you read the B<zguide>
+(L<http://zguide.zeromq.org>) before jumping in.
 
 This project attempts to stay on top of changes in ZeroMQ and the relevant
 Perl bindings. 
