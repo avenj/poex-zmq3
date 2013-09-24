@@ -279,6 +279,9 @@ sub _zsock_write {
     unless ($rc == POSIX::EAGAIN || $rc == POSIX::EINTR) {
       confess "zmq_msg_send failed; $!";
     }
+
+    # FIXME provide higher-level HWM interface(s),
+    #  manage struct->buffer appropriately?
   } else {
     ## Successfully queued on socket.
     shift @{ $struct->buffer }

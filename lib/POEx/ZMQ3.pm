@@ -52,9 +52,9 @@ concurrent/distributed applications. If you're just getting started with
 ZeroMQ, it is strongly advised you read the B<zguide>
 (L<http://zguide.zeromq.org>) before jumping in.
 
-This project attempts to stay on top of changes in ZeroMQ and the relevant
-Perl bindings. 
 You will need B<zeromq-3.2.2> or newer: L<http://www.zeromq.org>
+
+This is early development software; see L</BUGS>.
 
 =head2 Classes
 
@@ -90,7 +90,7 @@ See L<POEx::ZMQ3::Context>.
 
 =head1 BUGS
 
-Probably many; this software is fairly early in development.
+Probably many undiscovered; this software is fairly early in development.
 
 See L<http://github.com/avenj/poex-zmq3> and feel free to report bugs via
 either B<RT> or B<GitHub>.
