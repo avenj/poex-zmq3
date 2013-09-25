@@ -208,9 +208,9 @@ sub _zpub_connect {
 sub monitor {
   # FIXME
   #  Call zmq_socket_monitor (if we have it)
-  #  Talk to our own inproc:// for monitor
-  #  Translate to POE events
-  #  Return false if already monitored?
+  #  Talk to our own inproc:// monitor socket (module for same?)
+  #  Translate to POE events (provide monitor as an emitter?)
+  #  Return monitor socket instance?
 }
 
 sub write {

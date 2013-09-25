@@ -9,6 +9,8 @@ sub new {
   $class = ref $class || $class;
   no strict 'refs';
   my $this = \${$class.'::_ctxt_obj'};
+  # Returns the actual ZMQ::LibZMQ3 context object
+  # (this class can't be instanced)
   defined $$this ? $$this : ( $$this = $class->_new(@_) )
 }
 
