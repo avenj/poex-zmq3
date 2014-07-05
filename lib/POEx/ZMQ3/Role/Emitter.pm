@@ -109,8 +109,12 @@ POEx::ZMQ3::Role::Emitter - Event emitter for POEx::ZMQ3::Sockets
 
 =head1 SYNOPSIS
 
-Primarily used internally; the following public methods are provided to
-consumers:
+  # Primarily used internally; the following public methods are provided to
+  # consumers:
+
+  my $component = My::ZMQ::Session->new;
+  my $alias     = 'myalias';
+  my $endpoint  = 'tcp://127.0.0.1:1234';
 
   $component->add_bind( $alias, $endpoint );
   $component->add_connect( $alias, $endpoint );

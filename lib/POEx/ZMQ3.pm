@@ -1,4 +1,5 @@
 package POEx::ZMQ3;
+
 use strictures 1;
 use Carp;
 
@@ -18,6 +19,11 @@ sub import {
   1
 }
 
+=pod
+
+=for Pod::Coverage new
+
+=cut
 
 sub new {
   my $class = shift;
@@ -37,10 +43,9 @@ POEx::ZMQ3 - POE-enabled asynchronous ZeroMQ components
 =head1 SYNOPSIS
 
   use POEx::ZMQ3;
-  ## A POEx::ZMQ3::Sockets instance:
+  # A POEx::ZMQ3::Sockets instance:
   my $zmq = POEx::ZMQ3->new;
-
-(See L<POEx::ZMQ3::Sockets> for a complete example.)
+  # See POEx::ZMQ3::Sockets for a complete example.
 
 =head1 DESCRIPTION
 

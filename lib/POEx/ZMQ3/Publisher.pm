@@ -44,6 +44,8 @@ sub publish_multipart {
 
 =pod
 
+=for Pod::Coverage build_defined_states
+
 =head1 NAME
 
 POEx::ZMQ3::Publisher - A PUB-type ZeroMQ socket

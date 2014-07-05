@@ -16,6 +16,12 @@ has targets => (
 );
 
 
+=pod
+
+=for Pod::Coverage build_defined_states emitter_started zmqsock.+
+
+=cut
+
 sub build_defined_states {
   my ($self) = @_;
   [
@@ -101,12 +107,12 @@ POEx::ZMQ3::Subscriber - A SUB-type ZeroMQ socket
         );
       },
 
-      zeromq_subscribed_to => {
+      zeromq_subscribed_to => sub {
         my $target = $_[ARG0];
         print "Subscribed to $target\n";
       },
 
-      zeromq_received => {
+      zeromq_received => sub {
         my $data = $_[ARG0];
         print "Received $data from publisher\n";
 
@@ -164,6 +170,13 @@ parts:
     my $envelope = shift @parts;
     . . .
   }
+
+=head2 Attributes
+
+=head3 targets
+
+An ARRAY containing the list of publishing endpoints the Subscriber was
+configured for; see L</start>.
 
 =head1 SEE ALSO
 

@@ -491,7 +491,7 @@ POEx::ZMQ3::Sockets - POE ZeroMQ Component
 
     if ($data eq 'PONG') {
       ## Got a PONG. Send another PING:
-      $zmq->write( 'pinger', 'PING' );
+      $heap->{zmq}->write( 'pinger', 'PING' );
     }
   }
 
