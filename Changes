@@ -1,5 +1,13 @@
 Revision history for Perl module POEx::ZMQ3
 
+0.060004 2014-07-05
+
+  - Documentation fixes
+
+  - Drop namespace::clean dependency
+
+  - Fix 'Changes' to match CPAN::Changes::Spec
+
 0.060003 2013-06-30
 
   - Fix deprecated use of 'when()' in test suite
