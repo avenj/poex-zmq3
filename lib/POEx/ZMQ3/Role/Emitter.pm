@@ -2,15 +2,15 @@ package POEx::ZMQ3::Role::Emitter;
 
 use Carp;
 use POE;
-use Moo::Role;
-
-use namespace::clean;
 
 use POEx::ZMQ3::Sockets;
+
+
+use Moo::Role;
 with 'MooX::Role::POE::Emitter';
 
-
 requires 'start', 'stop';
+
 
 has defined_states => (
   is      => 'ro',

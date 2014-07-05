@@ -1,12 +1,12 @@
 package POEx::ZMQ3::Requestor;
 
 use Carp;
-use Moo;
 use POE;
 
-use namespace::clean;
 
+use Moo;
 with 'POEx::ZMQ3::Role::Emitter';
+
 
 has targets => (
   is => 'ro',

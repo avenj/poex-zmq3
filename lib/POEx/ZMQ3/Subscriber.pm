@@ -1,20 +1,20 @@
 package POEx::ZMQ3::Subscriber;
 
 use Carp;
-use Moo;
 use POE;
 
 ## FIXME
 ##  Easier subscription management wrt. multipart_recv
 
-use namespace::clean;
+use Moo;
+with 'POEx::ZMQ3::Role::Emitter';
+
 
 has targets => (
   is => 'rw',
   default => sub { [] },
 );
 
-with 'POEx::ZMQ3::Role::Emitter';
 
 sub build_defined_states {
   my ($self) = @_;

@@ -1,14 +1,14 @@
 package POEx::ZMQ3::Publisher;
 
 use Carp;
-use Moo;
 use POE;
 
-use namespace::clean;
 
+use Moo;
 with 'POEx::ZMQ3::Role::Emitter';
 
-sub build_defined_states {[]}
+
+sub build_defined_states { [] }
 
 sub start {
   my ($self, @endpoints) = @_;

@@ -2,9 +2,10 @@ package POEx::ZMQ3::Sockets;
 
 use 5.10.1;
 use Carp;
-use Moo;
 use POE;
-require POSIX;
+use POSIX ();
+
+use MooX::Role::Pluggable::Constants;
 
 use ZMQ::LibZMQ3;
 use ZMQ::Constants 
@@ -36,11 +37,13 @@ use ZMQ::Constants
  ;
 
 
-with 'MooX::Role::POE::Emitter';
-use MooX::Role::Pluggable::Constants;
-
 require POEx::ZMQ3::Sockets::ZMQSocket;
 sub ZMQSocket () { 'POEx::ZMQ3::Sockets::ZMQSocket' }
+
+
+use Moo;
+with 'MooX::Role::POE::Emitter';
+
 
 require POEx::ZMQ3::Context;
 has context => (
@@ -412,7 +415,8 @@ sub _zsock_watch {
 sub _zsock_unwatch {
   my ($kernel, $self, $alias) = @_[KERNEL, OBJECT, ARG0];
   my $struct = $self->_zmq_sockets->{$alias};
-  ## Deferred destruction eliminates 'bad FD' at exit.
+  ## There is a race condition in some ZMQ versions that results in 'bad FD'
+  ## assertions when exiting; deferred destruction helps:
   $self->yield(sub { $_[KERNEL]->select( $struct->handle ) });
   $self->yield(sub { delete $_[OBJECT]->_zmq_sockets->{$alias} });
 }

@@ -1,12 +1,12 @@
 package POEx::ZMQ3::Replier;
 
 use Carp;
-use Moo;
 use POE;
 
-use namespace::clean;
 
+use Moo;
 with 'POEx::ZMQ3::Role::Emitter';
+
 
 has listen => (
   is => 'ro',
