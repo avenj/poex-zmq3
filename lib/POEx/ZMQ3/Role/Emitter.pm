@@ -103,6 +103,8 @@ sub _stop_emitter { shift->_shutdown_emitter(@_) }
 
 =pod
 
+=for Pod::Coverage build_defined_states defined_states
+
 =head1 NAME
 
 POEx::ZMQ3::Role::Emitter - Event emitter for POEx::ZMQ3::Sockets

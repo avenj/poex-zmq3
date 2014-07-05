@@ -208,13 +208,13 @@ sub _zpub_connect {
   $self->emit( 'connect_added', $alias, $endpt )
 }
 
-sub monitor {
+#sub monitor {
   # FIXME
   #  Call zmq_socket_monitor (if we have it)
   #  Talk to our own inproc:// monitor socket (module for same?)
   #  Translate to POE events (provide monitor as an emitter?)
   #  Return monitor socket instance?
-}
+#}
 
 sub write {
   my $self = shift;
@@ -441,6 +441,8 @@ sub _zmq_clear_all {
 
 
 =pod
+
+=for Pod::Coverage BUILD ZMQSocket emitter_\w+
 
 =head1 NAME
 

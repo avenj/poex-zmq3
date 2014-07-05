@@ -73,6 +73,8 @@ sub zmqsock_recv {
 
 =pod
 
+=for Pod::Coverage build_defined_states emitter_started zmqsock.+
+
 =head1 NAME
 
 POEx::ZMQ3::Requestor - A REQ-type ZeroMQ socket
@@ -154,6 +156,12 @@ Emitted when we are initialized; $_[ARG0] is the target REP server's address.
 =head3 zeromq_got_reply
 
 Emitted when we receive a reply to a request; $_[ARG0] is the raw data.
+
+=head2 Attributes
+
+=head3 targets
+
+An ARRAY of endpoints the Requestor was configured with; see L</start>.
 
 =head1 SEE ALSO
 

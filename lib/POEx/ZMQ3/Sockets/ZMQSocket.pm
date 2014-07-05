@@ -1,11 +1,18 @@
 package POEx::ZMQ3::Sockets::ZMQSocket;
 
+=pod
 
-## Internal to POEx::ZMQ3::Sockets.
+=for comment 
 
+Internal to POEx::ZMQ3::Sockets:
+
+=for Pod::Coverage .*
+
+=cut
 
 use 5.10.1;
 use Carp;
+
 use Moo;
 
 has is_closing => (
