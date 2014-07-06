@@ -1,5 +1,6 @@
 package POEx::ZMQ3::Context;
 
+use v5.10;
 use strictures 1;
 use Carp 'confess';
 
