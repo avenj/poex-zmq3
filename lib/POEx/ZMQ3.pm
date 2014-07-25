@@ -38,7 +38,7 @@ sub new {
 
 =head1 NAME
 
-POEx::ZMQ3 - POE-enabled asynchronous ZeroMQ components
+POEx::ZMQ3 - **DEPRECATED** See POEx::ZMQ instead
 
 =head1 SYNOPSIS
 
@@ -48,6 +48,10 @@ POEx::ZMQ3 - POE-enabled asynchronous ZeroMQ components
   # See POEx::ZMQ3::Sockets for a complete example.
 
 =head1 DESCRIPTION
+
+B<< This distribution is deprecated and known broken with ZMQ4+! >>
+
+B<< See L<POEx::ZMQ> instead. >>
 
 A set of roles and classes providing a L<POE>-enabled asynchronous interface
 to B<ZeroMQ> (version 3) via L<ZMQ::LibZMQ3>.
