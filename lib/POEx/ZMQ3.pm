@@ -51,7 +51,9 @@ POEx::ZMQ3 - **DEPRECATED** See POEx::ZMQ instead
 
 B<< This distribution is deprecated and known broken with ZMQ4+! >>
 
-B<< See L<POEx::ZMQ> instead. >>
+B<< See L<POEx::ZMQ> instead >>. As of this writing, developer releases are
+available on CPAN, and you can help by contributing issues and/or fixes for
+same at L<http://www.github.com/avenj/poex-zmq>.
 
 A set of roles and classes providing a L<POE>-enabled asynchronous interface
 to B<ZeroMQ> (version 3) via L<ZMQ::LibZMQ3>.
