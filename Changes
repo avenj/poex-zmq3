@@ -1,5 +1,9 @@
 Revision history for Perl module POEx::ZMQ3
 
+0.07 2014-07-26
+
+  - Deprecate this distribution in favor of POEx::ZMQ
+
 0.060004 2014-07-05
 
   - Documentation fixes

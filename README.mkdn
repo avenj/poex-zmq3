@@ -1,6 +1,6 @@
 # NAME
 
-POEx::ZMQ3 - POE-enabled asynchronous ZeroMQ components
+POEx::ZMQ3 - \*\*DEPRECATED\*\* See POEx::ZMQ instead
 
 # SYNOPSIS
 
@@ -10,6 +10,13 @@ POEx::ZMQ3 - POE-enabled asynchronous ZeroMQ components
     # See POEx::ZMQ3::Sockets for a complete example.
 
 # DESCRIPTION
+
+**This distribution is deprecated and known broken with ZMQ4+!**
+It will likely be deleted in the future.
+
+**See [POEx::ZMQ](https://metacpan.org/pod/POEx::ZMQ) instead**. As of this writing, developer releases are
+available on CPAN, and you can help by contributing issues and/or fixes for
+same at [http://www.github.com/avenj/poex-zmq](http://www.github.com/avenj/poex-zmq).
 
 A set of roles and classes providing a [POE](https://metacpan.org/pod/POE)-enabled asynchronous interface
 to **ZeroMQ** (version 3) via [ZMQ::LibZMQ3](https://metacpan.org/pod/ZMQ::LibZMQ3).
