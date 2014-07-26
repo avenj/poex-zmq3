@@ -77,7 +77,7 @@ sub zmqsock_recv {
 
 =head1 NAME
 
-POEx::ZMQ3::Replier - A REP-type ZeroMQ socket
+POEx::ZMQ3::Replier
 
 =head1 SYNOPSIS
 

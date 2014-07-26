@@ -447,7 +447,7 @@ sub _zmq_clear_all {
 
 =head1 NAME
 
-POEx::ZMQ3::Sockets - POE ZeroMQ Component
+POEx::ZMQ3::Sockets
 
 =head1 SYNOPSIS
 

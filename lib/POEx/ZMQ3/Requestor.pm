@@ -77,7 +77,7 @@ sub zmqsock_recv {
 
 =head1 NAME
 
-POEx::ZMQ3::Requestor - A REQ-type ZeroMQ socket
+POEx::ZMQ3::Requestor
 
 =head1 SYNOPSIS
 

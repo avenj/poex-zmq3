@@ -107,7 +107,7 @@ sub _stop_emitter { shift->_shutdown_emitter(@_) }
 
 =head1 NAME
 
-POEx::ZMQ3::Role::Emitter - Event emitter for POEx::ZMQ3::Sockets
+POEx::ZMQ3::Role::Emitter
 
 =head1 SYNOPSIS
 

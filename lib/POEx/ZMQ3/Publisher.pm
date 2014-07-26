@@ -48,7 +48,7 @@ sub publish_multipart {
 
 =head1 NAME
 
-POEx::ZMQ3::Publisher - A PUB-type ZeroMQ socket
+POEx::ZMQ3::Publisher
 
 =head1 SYNOPSIS
 

@@ -41,7 +41,7 @@ sub reset {
 
 =head1 NAME
 
-POEx::ZMQ3::Context - A ZMQ context singleton
+POEx::ZMQ3::Context
 
 =head1 SYNOPSIS
 

@@ -85,7 +85,7 @@ sub zmqsock_multipart_recv {
 
 =head1 NAME
 
-POEx::ZMQ3::Subscriber - A SUB-type ZeroMQ socket
+POEx::ZMQ3::Subscriber
 
 =head1 SYNOPSIS
 
