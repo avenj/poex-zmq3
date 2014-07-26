@@ -50,6 +50,7 @@ POEx::ZMQ3 - **DEPRECATED** See POEx::ZMQ instead
 =head1 DESCRIPTION
 
 B<< This distribution is deprecated and known broken with ZMQ4+! >>
+It will likely be deleted in the future.
 
 B<< See L<POEx::ZMQ> instead >>. As of this writing, developer releases are
 available on CPAN, and you can help by contributing issues and/or fixes for
