@@ -1,5 +1,9 @@
 Revision history for Perl module POEx::ZMQ3
 
+0.071 2014-07-27
+
+  - AUTOMATED_TESTING BAIL_OUT test should be first
+
 0.07 2014-07-26
 
   - Deprecate this distribution in favor of POEx::ZMQ
