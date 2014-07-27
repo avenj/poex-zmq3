@@ -502,6 +502,8 @@ POEx::ZMQ3::Sockets
 
 =head1 DESCRIPTION
 
+B<< This software is deprecated and known-broken; see L<POEx::ZMQ> instead! >>
+
 This is the backend L<MooX::Role::POE::Emitter> session behind L<POEx::ZMQ3>,
 integrating ZeroMQ (L<http://www.zeromq.org>) with a L<POE> event loop.
 
